@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casebook Topic | 作者与系列专题</title>
+  <meta
+    name="description"
+    content="查看推理小说作者与系列专题，浏览聚合书单与相关简介。"
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-page="topic">
+  <canvas class="rain-layer" id="rain-layer" aria-hidden="true"></canvas>
+
+  <div class="page-shell">
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">[casebook/topic]</p>
+        <a class="wordmark" href="./index.html" aria-label="返回首页">
+          <span>CASEBOOK</span>
+          <span>TIMELINE</span>
+        </a>
+      </div>
+
+      <nav class="site-nav" aria-label="专题导航">
+        <a href="./index.html">返回时间线</a>
+        <a href="#topic-list">专题书单</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="topic-hero section-block" id="topic-hero">
+        <p class="eyebrow">[+] Topic Dossier</p>
+        <h1 id="topic-title">专题加载中...</h1>
+        <p class="hero-text" id="topic-description"></p>
+        <div class="topic-links" id="topic-links"></div>
+      </section>
+
+      <section class="section-block" id="topic-list" aria-labelledby="topic-list-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">[+] Reading File</p>
+            <h2 id="topic-list-title">相关书目</h2>
+          </div>
+          <p class="meta-text" id="topic-meta">正在整理资料...</p>
+        </div>
+
+        <div class="topic-grid" id="topic-grid"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>[x] Topic dossier for repeat reading.</p>
+      <p>作者与系列的关联条目会在这里持续扩展。</p>
+    </footer>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
