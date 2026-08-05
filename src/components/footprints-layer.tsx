@@ -53,6 +53,7 @@ export function FootprintsLayer() {
     const walker = {
       dir: 1,
       cx: -90,
+      prevCx: -90,
       gaitMs: 0,
       n: 0,
     };
@@ -96,6 +97,7 @@ export function FootprintsLayer() {
         walker.gaitMs -= STEP_MS;
         walker.n += 1;
         const front = walker.cx + walker.dir * (HALF_STRIDE + PRINT_W / 2) * ux;
+        walker.prevCx = walker.cx;
         if (walker.dir === 1 ? front >= x1 : front <= x0) {
           walker.dir *= -1;
         } else {
@@ -103,7 +105,10 @@ export function FootprintsLayer() {
         }
       }
 
-      const cy = y0 + ((walker.cx - x0) / (x1 - x0)) * (y1 - y0);
+      const stepFrac = walker.gaitMs / STEP_MS;
+      const cx = walker.prevCx + (walker.cx - walker.prevCx) * stepFrac;
+
+      const cy = y0 + ((cx - x0) / (x1 - x0)) * (y1 - y0);
 
       const lastFoot = walker.n % 2;
       const leftPhase = walker.gaitMs + (lastFoot === 0 ? 0 : STEP_MS);
@@ -114,21 +119,30 @@ export function FootprintsLayer() {
 
       const perpX = -uy;
       const perpY = ux;
+      const travelAngle =
+        90 + (Math.atan2(walker.dir * uy, walker.dir * ux) * 180) / Math.PI;
       const place = (
         el: HTMLElement,
         along: number,
         across: number,
+        splay: number,
       ) => {
-        el.style.left = `${walker.cx + walker.dir * along * ux + across * perpX}px`;
-        el.style.top = `${cy + walker.dir * along * uy + across * perpY}px`;
+        const x = cx + walker.dir * along * ux + across * perpX;
+        const y = cy + walker.dir * along * uy + across * perpY;
+        el.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${travelAngle + splay}deg)`;
       };
-      place(leftEl, lastFoot === 0 ? HALF_STRIDE : -HALF_STRIDE, -LATERAL / 2);
-      place(rightEl, lastFoot === 1 ? HALF_STRIDE : -HALF_STRIDE, LATERAL / 2);
-
-      const travelAngle =
-        90 + (Math.atan2(walker.dir * uy, walker.dir * ux) * 180) / Math.PI;
-      leftEl.style.transform = `rotate(${travelAngle - SPLAY}deg)`;
-      rightEl.style.transform = `rotate(${travelAngle + SPLAY}deg)`;
+      place(
+        leftEl,
+        lastFoot === 0 ? HALF_STRIDE : -HALF_STRIDE,
+        -LATERAL / 2,
+        -SPLAY,
+      );
+      place(
+        rightEl,
+        lastFoot === 1 ? HALF_STRIDE : -HALF_STRIDE,
+        LATERAL / 2,
+        SPLAY,
+      );
 
       rafId = requestAnimationFrame(tick);
     };
