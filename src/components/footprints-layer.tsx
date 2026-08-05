@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const STRIDE = 72;
 const HALF_STRIDE = STRIDE / 2;
@@ -18,8 +19,14 @@ const Y_BOTTOM_GAP = 96;
 
 export function FootprintsLayer() {
   const layerRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const layer = layerRef.current;
     if (!layer || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
@@ -133,14 +140,17 @@ export function FootprintsLayer() {
       leftEl.remove();
       rightEl.remove();
     };
-  }, []);
+  }, [mounted]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="footprints-layer"
       id="footprints-layer"
       ref={layerRef}
       aria-hidden="true"
-    />
+    />,
+    document.body,
   );
 }
