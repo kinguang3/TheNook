@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Casebook Timeline（悬疑推理书架）
 
-## Getting Started
+一个悬疑推理小说推荐站点，按时间线展示作品、支持按作者/系列筛选，并带收藏、评分、读后感等个人化功能。前身为纯静态页面（已归档至 `legacy/`），现已迁移为 **Next.js 16（App Router）+ Supabase** 全栈应用。
 
-First, run the development server:
+- 技术栈：Next.js 16.3（Turbopack）、React 19、TypeScript、Supabase（Postgres + Auth + RLS）
+
+## 功能特色
+
+- **时间线首页**：作品按出版时间排列，带雨幕/脚印动效
+- **筛选浏览**：按作者、系列筛选，按年份分组
+- **专题页**：每个作者/系列一个独立详情页
+- **用户系统**：注册/登录（Supabase Auth，邮箱验证）、会话自动刷新
+- **个人数据**：收藏、评分（1–5 星）、读后感，持久化到 Supabase，仅本人可见（RLS）
+
+## 本地开发
+
+### 1. 环境要求
+
+- Node.js 20+
+- 一个 [Supabase](https://supabase.com) 项目（免费档即可）
+
+### 2. 初始化数据库
+
+打开 Supabase 控制台 → SQL Editor，将 [`supabase/schema.sql`](supabase/schema.sql) 全部执行一次。它会创建：
+
+- `books`、`authors`、`series`（公开可读）
+- `favorites`、`ratings`、`notes`（RLS 保护，仅属主可读写）
+- 种子数据：5 位作者、4 个系列、8 本推理小说
+
+### 3. 配置环境变量
+
+复制 `.env.example` 为 `.env.local`（本地无需提交）：
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> 项目 URL 不要带 `/rest/v1/` 后缀；ANON key 可在 Supabase 控制台 → Settings → API 找到。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. 启动
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+打开 http://localhost:3000 。
 
-To learn more about Next.js, take a look at the following resources:
+> 提示：本项目使用 Next.js 16，`middleware` 已更名为 `src/proxy.ts`。改动类型/页面后，建议先运行 `npx next typegen` 再 `npx tsc --noEmit`。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 项目结构
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── page.tsx              # 首页（时间线 + 筛选）
+│   ├── topic/page.tsx        # 作者/系列专题页
+│   ├── login|signup/page.tsx # 登录/注册
+│   ├── auth/callback/route.ts# 邮箱验证回调
+│   ├── actions/              # Server Actions（auth、user-data）
+│   └── globals.css
+├── components/               # 首页交互、表单、动效组件
+├── lib/supabase/             # 服务端/浏览器客户端
+├── lib/data.ts               # 数据读取封装
+└── proxy.ts                  # 会话刷新代理（原 middleware）
+supabase/schema.sql           # 建表 + RLS + 种子数据
+legacy/                       # 迁移前的静态版备份
+```
