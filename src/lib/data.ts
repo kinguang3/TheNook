@@ -30,6 +30,7 @@ export async function getBooks(
     read_time: string;
     cover_tone: string;
     cover_mark: string;
+    cover_url: string;
     rating: number;
     tags: string[];
     blurb: string;
@@ -52,6 +53,7 @@ export async function getBooks(
     readTime: book.read_time,
     coverTone: book.cover_tone,
     coverMark: book.cover_mark,
+    coverUrl: book.cover_url ?? "",
     rating: book.rating,
     tags: book.tags ?? [],
     blurb: book.blurb,

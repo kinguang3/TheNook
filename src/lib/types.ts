@@ -21,6 +21,7 @@ export type Book = {
   readTime: string;
   coverTone: string;
   coverMark: string;
+  coverUrl: string;
   rating: number;
   tags: string[];
   blurb: string;

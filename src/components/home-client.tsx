@@ -315,7 +315,16 @@ export function HomeClient({
                   >
                     <div className="card-layout">
                       <div className={`cover-block ${book.coverTone}`}>
-                        <span className="cover-mark">{book.coverMark}</span>
+                        {book.coverUrl ? (
+                          <img
+                            className="cover-image"
+                            src={book.coverUrl}
+                            alt={`${book.title} 封面`}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="cover-mark">{book.coverMark}</span>
+                        )}
                       </div>
 
                       <div>

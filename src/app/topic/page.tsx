@@ -129,7 +129,16 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
                 [{book.year}] {book.readTime}
               </p>
               <div className={`cover-block ${book.coverTone}`}>
-                <span className="cover-mark">{book.coverMark}</span>
+                {book.coverUrl ? (
+                  <img
+                    className="cover-image"
+                    src={book.coverUrl}
+                    alt={`${book.title} 封面`}
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="cover-mark">{book.coverMark}</span>
+                )}
               </div>
               <h3>{book.title}</h3>
               <p>

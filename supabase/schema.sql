@@ -26,6 +26,7 @@ create table if not exists public.books (
   read_time text not null,
   cover_tone text not null default 'cover-slate',
   cover_mark text not null default '',
+  cover_url text not null default '',
   rating integer not null default 5,
   tags text[] not null default '{}',
   blurb text not null default '',
@@ -112,13 +113,27 @@ insert into public.series (id, name, summary) values
   ('poirot-series', '波洛系列', '古典侦探范式的代表，强调推理秩序、人物动机和结尾的戏剧性揭示。')
 on conflict (id) do nothing;
 
-insert into public.books (id, title, author_id, series_id, year, read_time, cover_tone, cover_mark, rating, tags, blurb, note) values
-  ('journey-under-the-midnight-sun', '白夜行', 'keigo-higashino', null, 1999, '2026.01', 'cover-slate', '01', 5, '{社会派,日系,心理悬疑}', '长达数十年的命运纠缠让案件本身逐渐退到幕后，真正令人发冷的是两位主角彼此缝合的人生结构。', '更像一部冷色调的人物史。推理不是唯一重点，但压抑感和命运感极强，后劲很长。'),
-  ('the-devotion-of-suspect-x', '嫌疑人X的献身', 'keigo-higashino', 'galileo-series', 2005, '2026.02', 'cover-ember', '02', 5, '{社会派,日系,诡计流}', '以数学般克制的叙事处理牺牲、爱与自毁，把一个看似清楚的案件推向极度悲伤的终局。', '核心不是谜底本身，而是为了成全某人可以精密到何种程度。读完会安静很久。'),
-  ('malice', '恶意', 'keigo-higashino', 'kaga-series', 1996, '2026.03', 'cover-graphite', '03', 4, '{日系,心理悬疑,叙述诡计}', '案件很早便有答案，真正的推理在于恶意为何形成、如何被伪装，以及它如何扭曲一段看似平常的关系。', '从动机层面完成反转，结构不炫技但非常扎实，适合喜欢心理层层剥开的读者。'),
-  ('tokyo-zodiac-murders', '占星术杀人魔法', 'soji-shimada', 'mitarai-series', 1981, '2026.04', 'cover-violet', '04', 5, '{本格推理,日系,不可能犯罪}', '带有传奇感的设定与巨大的谜面相互咬合，整本书像在邀请读者正面挑战一个足够大胆的迷宫。', '新本格入门常客。谜面宏大，解答也足够爽快，适合想重新点燃推理阅读兴奋感的时候。'),
-  ('points-and-lines', '点与线', 'seicho-matsumoto', null, 1958, '2026.05', 'cover-forest', '05', 4, '{社会派,日系,现实主义}', '以列车时刻表和细密调查推进案件，在冷静的程序感里慢慢逼出制度与人情共同构成的压力。', '朴素但耐读，越读越能感受到社会派的锋利来自现实细节而不是夸张诡计。'),
-  ('murder-on-the-orient-express', '东方快车谋杀案', 'agatha-christie', 'poirot-series', 1934, '2026.05', 'cover-burgundy', '06', 5, '{欧美,本格推理,经典}', '封闭环境、稳定节奏与强戏剧性收束都近乎教科书级别，是古典推理最有辨识度的样子之一。', '即使早知道名气，也还是会被最后的处理方式击中。结构完成度非常高。'),
-  ('and-then-there-were-none', '无人生还', 'agatha-christie', null, 1939, '2026.06', 'cover-ocean', '07', 5, '{欧美,本格推理,孤岛悬疑}', '规则清晰、压迫感持续加重，角色与童谣共同构成步步逼近的倒计时，是氛围与结构同步发力的经典。', '节奏控制极稳，悬疑张力几乎没有浪费的段落。非常适合一口气读完。'),
-  ('the-greek-coffin-mystery', '希腊棺材之谜', 'ellery-queen', null, 1932, '2026.07', 'cover-steel', '08', 4, '{硬核推理,欧美,逻辑流}', '围绕遗嘱、尸体与身份构建层层校验的逻辑游戏，细节多、回看价值高，阅读过程非常像参与一次正式推演。', '需要专注，但公平而过瘾。适合想要扎实演绎感、愿意慢慢咀嚼线索的读者。')
+insert into public.books (id, title, author_id, series_id, year, read_time, cover_tone, cover_mark, cover_url, rating, tags, blurb, note) values
+  ('journey-under-the-midnight-sun', '白夜行', 'keigo-higashino', null, 1999, '2026.01', 'cover-slate', '01', 'https://img3.doubanio.com/view/subject/l/public/s4610502.jpg', 5, '{社会派,日系,心理悬疑}', '长达数十年的命运纠缠让案件本身逐渐退到幕后，真正令人发冷的是两位主角彼此缝合的人生结构。', '更像一部冷色调的人物史。推理不是唯一重点，但压抑感和命运感极强，后劲很长。'),
+  ('the-devotion-of-suspect-x', '嫌疑人X的献身', 'keigo-higashino', 'galileo-series', 2005, '2026.02', 'cover-ember', '02', 'https://img9.doubanio.com/view/subject/l/public/s3254244.jpg', 5, '{社会派,日系,诡计流}', '以数学般克制的叙事处理牺牲、爱与自毁，把一个看似清楚的案件推向极度悲伤的终局。', '核心不是谜底本身，而是为了成全某人可以精密到何种程度。读完会安静很久。'),
+  ('malice', '恶意', 'keigo-higashino', 'kaga-series', 1996, '2026.03', 'cover-graphite', '03', 'https://img9.doubanio.com/view/subject/l/public/s3814606.jpg', 4, '{日系,心理悬疑,叙述诡计}', '案件很早便有答案，真正的推理在于恶意为何形成、如何被伪装，以及它如何扭曲一段看似平常的关系。', '从动机层面完成反转，结构不炫技但非常扎实，适合喜欢心理层层剥开的读者。'),
+  ('tokyo-zodiac-murders', '占星术杀人魔法', 'soji-shimada', 'mitarai-series', 1981, '2026.04', 'cover-violet', '04', 'https://img3.doubanio.com/view/subject/l/public/s4583997.jpg', 5, '{本格推理,日系,不可能犯罪}', '带有传奇感的设定与巨大的谜面相互咬合，整本书像在邀请读者正面挑战一个足够大胆的迷宫。', '新本格入门常客。谜面宏大，解答也足够爽快，适合想重新点燃推理阅读兴奋感的时候。'),
+  ('points-and-lines', '点与线', 'seicho-matsumoto', null, 1958, '2026.05', 'cover-forest', '05', 'https://img1.doubanio.com/view/subject/l/public/s4136409.jpg', 4, '{社会派,日系,现实主义}', '以列车时刻表和细密调查推进案件，在冷静的程序感里慢慢逼出制度与人情共同构成的压力。', '朴素但耐读，越读越能感受到社会派的锋利来自现实细节而不是夸张诡计。'),
+  ('murder-on-the-orient-express', '东方快车谋杀案', 'agatha-christie', 'poirot-series', 1934, '2026.05', 'cover-burgundy', '06', 'https://img1.doubanio.com/view/subject/l/public/s1765799.jpg', 5, '{欧美,本格推理,经典}', '封闭环境、稳定节奏与强戏剧性收束都近乎教科书级别，是古典推理最有辨识度的样子之一。', '即使早知道名气，也还是会被最后的处理方式击中。结构完成度非常高。'),
+  ('and-then-there-were-none', '无人生还', 'agatha-christie', null, 1939, '2026.06', 'cover-ocean', '07', 'https://img1.doubanio.com/view/subject/l/public/s2962510.jpg', 5, '{欧美,本格推理,孤岛悬疑}', '规则清晰、压迫感持续加重，角色与童谣共同构成步步逼近的倒计时，是氛围与结构同步发力的经典。', '节奏控制极稳，悬疑张力几乎没有浪费的段落。非常适合一口气读完。'),
+  ('the-greek-coffin-mystery', '希腊棺材之谜', 'ellery-queen', null, 1932, '2026.07', 'cover-steel', '08', 'https://img1.doubanio.com/view/subject/l/public/s3978788.jpg', 4, '{硬核推理,欧美,逻辑流}', '围绕遗嘱、尸体与身份构建层层校验的逻辑游戏，细节多、回看价值高，阅读过程非常像参与一次正式推演。', '需要专注，但公平而过瘾。适合想要扎实演绎感、愿意慢慢咀嚼线索的读者。')
 on conflict (id) do nothing;
+
+-- 为已存在的行补上封面（重跑脚本时覆盖旧值）
+update public.books set cover_url = v.cover_url
+from (values
+  ('journey-under-the-midnight-sun', 'https://img3.doubanio.com/view/subject/l/public/s4610502.jpg'),
+  ('the-devotion-of-suspect-x', 'https://img9.doubanio.com/view/subject/l/public/s3254244.jpg'),
+  ('malice', 'https://img9.doubanio.com/view/subject/l/public/s3814606.jpg'),
+  ('tokyo-zodiac-murders', 'https://img3.doubanio.com/view/subject/l/public/s4583997.jpg'),
+  ('points-and-lines', 'https://img1.doubanio.com/view/subject/l/public/s4136409.jpg'),
+  ('murder-on-the-orient-express', 'https://img1.doubanio.com/view/subject/l/public/s1765799.jpg'),
+  ('and-then-there-were-none', 'https://img1.doubanio.com/view/subject/l/public/s2962510.jpg'),
+  ('the-greek-coffin-mystery', 'https://img1.doubanio.com/view/subject/l/public/s3978788.jpg')
+) as v(id, cover_url)
+where public.books.id = v.id;

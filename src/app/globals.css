@@ -371,6 +371,14 @@ textarea {
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.38));
 }
 
+.cover-block .cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .cover-mark {
   position: absolute;
   left: 12px;
