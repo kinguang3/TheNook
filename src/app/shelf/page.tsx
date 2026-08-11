@@ -5,6 +5,7 @@ import {
   getBooks,
   getSeries,
   getShelfData,
+  getUserData,
 } from "@/lib/data";
 import { ShelfClient } from "@/components/shelf-client";
 
@@ -20,6 +21,7 @@ export default async function ShelfPage() {
   ]);
   const books = await getBooks(supabase, authors, seriesList);
   const shelfData = user ? await getShelfData(supabase, user.id) : {};
+  const userData = user ? await getUserData(supabase, user.id) : null;
 
   return (
     <main>
@@ -30,13 +32,15 @@ export default async function ShelfPage() {
             <h1>用户书架</h1>
           </div>
           <p className="meta-text">
-            {user ? `${books.length} 本 · 按阅读进度排序` : "登录后记录阅读进度"}
+            {user
+              ? `${userData?.favorites.length ?? 0} 本已收藏 · 按阅读进度排序`
+              : "登录后收藏书籍并记录阅读进度"}
           </p>
         </div>
 
         {!user && (
           <p className="shelf-notice">
-            [ ] 尚未登录，进度与状态仅本地展示。
+            [ ] 尚未登录，收藏与进度无法同步。
             <Link className="info-link" href="/login">
               去登录
             </Link>
@@ -46,6 +50,7 @@ export default async function ShelfPage() {
         <ShelfClient
           books={books}
           initialShelf={shelfData}
+          initialFavorites={userData?.favorites ?? []}
           isAuthed={Boolean(user)}
         />
       </section>

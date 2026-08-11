@@ -230,54 +230,6 @@ export function HomeClient({
         </section>
 
         <section
-          className="collection section-block"
-          id="collection"
-          aria-labelledby="collection-title"
-        >
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">[+] My Collection</p>
-              <h2 id="collection-title">我的收藏 / 读后感</h2>
-            </div>
-            <p className="meta-text" id="collection-meta">
-              {favoriteBooks.length
-                ? `${favoriteBooks.length} 本已收藏`
-                : isAuthed
-                  ? "还没有加入收藏"
-                  : "登录后可收藏并同步数据"}
-            </p>
-          </div>
-          <div className="collection-list" id="collection-list">
-            {!favoriteBooks.length ? (
-              <div className="collection-item">
-                <div>
-                  <strong>[ ] 收藏夹为空</strong>
-                  <p>
-                    在时间线中点击“加入收藏”，这里会同步显示你保留下来的案件与读后感。
-                  </p>
-                </div>
-              </div>
-            ) : (
-              favoriteBooks.map((book) => (
-                <article className="collection-item" key={book.id}>
-                  <div>
-                    <strong>
-                      {book.title} / {book.authorName}
-                    </strong>
-                    <p>
-                      {userData.notes[book.id] || book.note}
-                    </p>
-                  </div>
-                  <span className="meta-text">
-                    {userData.ratings[book.id] ?? book.rating} / 5
-                  </span>
-                </article>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section
           className="timeline-section section-block"
           id="timeline"
           aria-labelledby="timeline-title"
