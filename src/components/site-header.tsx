@@ -20,6 +20,7 @@ export async function SiteHeader() {
 
       <nav className="site-nav" aria-label="主导航">
         <Link href="/#timeline">时间线</Link>
+        <Link href="/shelf">书架</Link>
         <Link href="/#collection">我的收藏</Link>
         <Link href="/topic?type=author&id=keigo-higashino">作者专题</Link>
 

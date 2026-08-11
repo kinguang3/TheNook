@@ -1,5 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Author, Book, Series, UserData } from "@/lib/types";
+import type {
+  Author,
+  Book,
+  Series,
+  ShelfData,
+  UserData,
+} from "@/lib/types";
+
+const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
 
 export async function getAuthors(
   supabase: SupabaseClient,
@@ -84,4 +92,26 @@ export async function getUserData(
 
 export function getAllTags(books: Book[]): string[] {
   return [...new Set(books.flatMap((book) => book.tags))];
+}
+
+export async function getShelfData(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<ShelfData> {
+  const { data } = await supabase
+    .from("shelf")
+    .select("book_id, progress, status, last_read_at")
+    .eq("user_id", userId);
+
+  const shelf: ShelfData = {};
+  for (const row of data ?? []) {
+    const status = row.status as "unread" | "reading" | "finished";
+    if (!shelfRowStatuses.has(status)) continue;
+    shelf[row.book_id as string] = {
+      progress: row.progress as number,
+      status,
+      lastReadAt: row.last_read_at as string | null,
+    };
+  }
+  return shelf;
 }

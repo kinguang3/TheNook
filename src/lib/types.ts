@@ -34,6 +34,20 @@ export type UserData = {
   notes: Record<string, string>;
 };
 
+export type ShelfStatus = "unread" | "reading" | "finished";
+
+export type ShelfEntry = {
+  progress: number;
+  status: ShelfStatus;
+  lastReadAt: string | null;
+};
+
+export type ShelfData = Record<string, ShelfEntry>;
+
+export type ShelfRow = ShelfEntry & {
+  bookId: string;
+};
+
 export const emptyUserData: UserData = {
   favorites: [],
   ratings: {},
