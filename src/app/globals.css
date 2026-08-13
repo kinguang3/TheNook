@@ -68,28 +68,103 @@ textarea {
   overflow: hidden;
 }
 
-.page-shell {
+.app-shell {
   position: relative;
   z-index: 2;
-  width: min(calc(100% - 32px), var(--max-width));
-  margin: 0 auto;
-  padding: 24px 0 64px;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  min-height: 100vh;
 }
 
-.site-header,
+.app-main {
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  height: 100vh;
+  padding: 24px 20px;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.sidebar-brand {
+  display: grid;
+  gap: 10px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  color: var(--text-soft);
+  transition: color var(--transition), border-color var(--transition),
+    background var(--transition);
+}
+
+.sidebar-link span {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.sidebar-link:hover,
+.sidebar-link:focus-visible {
+  color: var(--text);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-link.active {
+  color: var(--text);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 700;
+}
+
+.sidebar-link.active span {
+  color: var(--accent);
+}
+
+.sidebar-foot {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.sidebar-status {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.sidebar-meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
 .site-footer,
 .section-block {
   border: 1px solid var(--line);
   background: var(--panel);
-}
-
-.site-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 20px;
-  margin-bottom: 24px;
 }
 
 .wordmark {
@@ -102,14 +177,16 @@ textarea {
   letter-spacing: 0.08em;
 }
 
-.site-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
+.wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.site-nav a,
 .tag-button,
 .topic-link,
 .favorite-button,
@@ -121,15 +198,12 @@ textarea {
     background var(--transition), transform var(--transition);
 }
 
-.site-nav a,
 .topic-link,
 .button-link {
   padding: 8px 12px;
   cursor: pointer;
 }
 
-.site-nav a:hover,
-.site-nav a:focus-visible,
 .button-link:hover,
 .button-link:focus-visible,
 .tag-button:hover,
@@ -700,6 +774,43 @@ textarea {
 }
 
 @media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sidebar-brand {
+    flex: 0 0 auto;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .sidebar-foot {
+    flex: 1 0 100%;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 0;
+  }
+
+  .sidebar-meta {
+    margin-left: auto;
+  }
+
   .hero,
   .topic-hero {
     grid-template-columns: 1fr;
@@ -722,12 +833,11 @@ textarea {
     display: none;
   }
 
-  .page-shell {
-    width: min(calc(100% - 20px), var(--max-width));
-    padding-top: 12px;
+  .app-main {
+    padding: 12px 10px 48px;
   }
 
-  .site-header,
+  .sidebar,
   .section-block,
   .site-footer {
     padding: 16px;
@@ -761,9 +871,36 @@ textarea {
   .cover-block {
     min-height: 120px;
   }
+}
 
-  .site-nav {
-    justify-content: flex-start;
+/* ---------- 打字机效果 ---------- */
+
+.typewriter-hero {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.3rem);
+  line-height: 1.25;
+}
+
+.typewriter-caret {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--accent);
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+.typewriter-caret.done {
+  animation: caret-blink 1s steps(1) infinite, caret-fade 1.6s ease forwards;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes caret-fade {
+  to {
+    opacity: 0;
   }
 }
 

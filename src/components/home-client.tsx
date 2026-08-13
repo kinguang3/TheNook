@@ -8,6 +8,7 @@ import {
   toggleFavorite,
 } from "@/app/actions/user-data";
 import type { Book, UserData } from "@/lib/types";
+import { Typewriter } from "@/components/typewriter";
 
 type HomeClientProps = {
   books: Book[];
@@ -179,7 +180,7 @@ export function HomeClient({
         <section className="hero section-block">
           <div className="hero-copy">
             <p className="eyebrow">[+] Suspense Archive</p>
-            <h1>沿着时间线，重走那些让人失眠的推理小说。</h1>
+            <Typewriter text="沿着时间线，重走那些让人失眠的推理小说。" speed={90} />
             <p className="hero-text">
               这里收录本格、社会派、硬核与经典欧美推理。向下滚动，时间线会持续延伸；
               每一个节点都记录一部值得反复回味的谜题、动机与余韵。

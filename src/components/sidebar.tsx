@@ -1,0 +1,69 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { SignOutButton } from "@/components/sign-out-button";
+
+type SidebarProps = {
+  userEmail: string | null;
+};
+
+const NAV_ITEMS: {
+  id: "timeline" | "shelf" | "signup" | "login";
+  label: string;
+  href: string;
+}[] = [
+  { id: "timeline", label: "时间线", href: "/#timeline" },
+  { id: "shelf", label: "书架", href: "/shelf" },
+  { id: "signup", label: "注册", href: "/signup" },
+  { id: "login", label: "登入", href: "/login" },
+];
+
+export function Sidebar({ userEmail }: SidebarProps) {
+  const pathname = usePathname();
+
+  const isActive = (id: string) => {
+    if (id === "timeline") return pathname === "/";
+    if (id === "shelf") return pathname.startsWith("/shelf");
+    if (id === "login") return pathname.startsWith("/login");
+    if (id === "signup") return pathname.startsWith("/signup");
+    return false;
+  };
+
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <p className="eyebrow">[casebook/timeline]</p>
+        <Link className="wordmark" href="/" aria-label="Casebook Timeline 首页">
+          <span>CASEBOOK</span>
+          <span>TIMELINE</span>
+        </Link>
+      </div>
+
+      <nav className="sidebar-nav" aria-label="主导航">
+        {NAV_ITEMS.map((item) => (
+          <Link
+            key={item.id}
+            href={item.href}
+            className={`sidebar-link${isActive(item.id) ? " active" : ""}`}
+          >
+            <span aria-hidden="true">{isActive(item.id) ? "[x]" : "[+]"}</span>
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
+      <div className="sidebar-foot">
+        {userEmail ? (
+          <>
+            <p className="user-chip">[{userEmail}]</p>
+            <SignOutButton />
+          </>
+        ) : (
+          <p className="sidebar-status">[ ] 未登录</p>
+        )}
+        <p className="sidebar-meta">[/static/v0.1]</p>
+      </div>
+    </aside>
+  );
+}
