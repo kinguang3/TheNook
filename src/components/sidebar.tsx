@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -9,8 +9,8 @@ type SidebarProps = {
   userEmail: string | null;
 };
 
-const MIN_WIDTH = 180;
-const MAX_WIDTH = 400;
+const MIN_WIDTH = 160;
+const MAX_WIDTH = 440;
 const DEFAULT_WIDTH = 240;
 
 const NAV_ITEMS: {
@@ -41,6 +41,30 @@ export function Sidebar({ userEmail }: SidebarProps) {
     localStorage.setItem("sidebar-width", String(width));
   }, [width]);
 
+  const handleResizeStart = useCallback((event: React.PointerEvent) => {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = width;
+
+    const handleMove = (moveEvent: PointerEvent) => {
+      const next = Math.min(
+        Math.max(startWidth + (moveEvent.clientX - startX), MIN_WIDTH),
+        MAX_WIDTH,
+      );
+      setWidth(next);
+    };
+
+    const handleUp = () => {
+      document.removeEventListener("pointermove", handleMove);
+      document.removeEventListener("pointerup", handleUp);
+      document.body.classList.remove("sidebar-resizing");
+    };
+
+    document.addEventListener("pointermove", handleMove);
+    document.addEventListener("pointerup", handleUp);
+    document.body.classList.add("sidebar-resizing");
+  }, [width]);
+
   const isActive = (id: string) => {
     if (id === "timeline") return pathname === "/";
     if (id === "shelf") return pathname.startsWith("/shelf");
@@ -53,6 +77,15 @@ export function Sidebar({ userEmail }: SidebarProps) {
 
   return (
     <aside className="sidebar">
+      <div
+        className="sidebar-resizer"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="拖拽调节侧边栏宽度"
+        onPointerDown={handleResizeStart}
+        onDoubleClick={() => setWidth(DEFAULT_WIDTH)}
+      />
+
       <div className="sidebar-brand">
         <p className="eyebrow">[casebook/timeline]</p>
         <Link className="wordmark" href="/" aria-label="Casebook Timeline 首页">
@@ -86,18 +119,6 @@ export function Sidebar({ userEmail }: SidebarProps) {
           <p className="sidebar-status">[ ] 未登录</p>
         )}
         <p className="sidebar-meta">[/static/v0.1]</p>
-        <label className="sidebar-width-control">
-          <span>栏宽 {width}px</span>
-          <input
-            type="range"
-            min={MIN_WIDTH}
-            max={MAX_WIDTH}
-            step={10}
-            value={width}
-            onChange={(event) => setWidth(Number(event.target.value))}
-            aria-label="调节侧边栏宽度"
-          />
-        </label>
       </div>
     </aside>
   );

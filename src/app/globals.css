@@ -161,19 +161,36 @@ textarea {
   font-size: 0.78rem;
 }
 
-.sidebar-width-control {
-  display: grid;
-  gap: 6px;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  color: var(--text-muted);
-  font-size: 0.8rem;
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 9px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 5;
 }
 
-.sidebar-width-control input {
-  width: 100%;
-  accent-color: var(--accent);
-  cursor: pointer;
+.sidebar-resizer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: transparent;
+  transition: background var(--transition);
+}
+
+.sidebar-resizer:hover::after,
+.sidebar-resizer:active::after {
+  background: var(--line-strong);
+}
+
+body.sidebar-resizing {
+  cursor: col-resize;
+  user-select: none;
 }
 
 .site-footer,
@@ -826,7 +843,7 @@ textarea {
     margin-left: auto;
   }
 
-  .sidebar-width-control {
+  .sidebar-resizer {
     display: none;
   }
 
