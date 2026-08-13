@@ -72,7 +72,7 @@ textarea {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -879,6 +879,7 @@ textarea {
   margin: 0;
   font-size: clamp(2rem, 5vw, 3.3rem);
   line-height: 1.25;
+  min-height: calc(2.5em * 1.25);
 }
 
 .typewriter-caret {
@@ -888,18 +889,8 @@ textarea {
   animation: caret-blink 1s steps(1) infinite;
 }
 
-.typewriter-caret.done {
-  animation: caret-blink 1s steps(1) infinite, caret-fade 1.6s ease forwards;
-}
-
 @keyframes caret-blink {
   50% {
-    opacity: 0;
-  }
-}
-
-@keyframes caret-fade {
-  to {
     opacity: 0;
   }
 }

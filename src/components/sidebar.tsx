@@ -12,11 +12,12 @@ const NAV_ITEMS: {
   id: "timeline" | "shelf" | "signup" | "login";
   label: string;
   href: string;
+  requiresGuest?: boolean;
 }[] = [
   { id: "timeline", label: "时间线", href: "/#timeline" },
   { id: "shelf", label: "书架", href: "/shelf" },
-  { id: "signup", label: "注册", href: "/signup" },
-  { id: "login", label: "登入", href: "/login" },
+  { id: "signup", label: "注册", href: "/signup", requiresGuest: true },
+  { id: "login", label: "登入", href: "/login", requiresGuest: true },
 ];
 
 export function Sidebar({ userEmail }: SidebarProps) {
@@ -30,6 +31,8 @@ export function Sidebar({ userEmail }: SidebarProps) {
     return false;
   };
 
+  const isLoggedIn = Boolean(userEmail);
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -41,7 +44,9 @@ export function Sidebar({ userEmail }: SidebarProps) {
       </div>
 
       <nav className="sidebar-nav" aria-label="主导航">
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.filter(
+          (item) => !item.requiresGuest || !isLoggedIn,
+        ).map((item) => (
           <Link
             key={item.id}
             href={item.href}
