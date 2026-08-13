@@ -185,6 +185,7 @@ export function HomeClient({
                 "沿着时间线，重走那些让人失眠的推理小说。",
                 "每一本都是一场未完成的对话，等待被重新打开。",
               ]}
+              deleteSpeed={55}
             />
             <p className="hero-text">
               这里收录本格、社会派、硬核与经典欧美推理。向下滚动，时间线会持续延伸；
