@@ -72,7 +72,7 @@ textarea {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-w, 240px) minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -159,6 +159,21 @@ textarea {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.78rem;
+}
+
+.sidebar-width-control {
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.sidebar-width-control input {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 .site-footer,
@@ -809,6 +824,10 @@ textarea {
 
   .sidebar-meta {
     margin-left: auto;
+  }
+
+  .sidebar-width-control {
+    display: none;
   }
 
   .hero,

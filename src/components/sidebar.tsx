@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -7,6 +8,10 @@ import { SignOutButton } from "@/components/sign-out-button";
 type SidebarProps = {
   userEmail: string | null;
 };
+
+const MIN_WIDTH = 180;
+const MAX_WIDTH = 400;
+const DEFAULT_WIDTH = 240;
 
 const NAV_ITEMS: {
   id: "timeline" | "shelf" | "signup" | "login";
@@ -22,6 +27,19 @@ const NAV_ITEMS: {
 
 export function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname();
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+
+  useEffect(() => {
+    const saved = Number(localStorage.getItem("sidebar-width"));
+    if (Number.isFinite(saved) && saved >= MIN_WIDTH && saved <= MAX_WIDTH) {
+      setWidth(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--sidebar-w", `${width}px`);
+    localStorage.setItem("sidebar-width", String(width));
+  }, [width]);
 
   const isActive = (id: string) => {
     if (id === "timeline") return pathname === "/";
@@ -68,6 +86,18 @@ export function Sidebar({ userEmail }: SidebarProps) {
           <p className="sidebar-status">[ ] 未登录</p>
         )}
         <p className="sidebar-meta">[/static/v0.1]</p>
+        <label className="sidebar-width-control">
+          <span>栏宽 {width}px</span>
+          <input
+            type="range"
+            min={MIN_WIDTH}
+            max={MAX_WIDTH}
+            step={10}
+            value={width}
+            onChange={(event) => setWidth(Number(event.target.value))}
+            aria-label="调节侧边栏宽度"
+          />
+        </label>
       </div>
     </aside>
   );
