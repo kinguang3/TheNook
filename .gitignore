@@ -48,3 +48,6 @@ next-env.d.ts
 # editor & misc
 /.vscode/
 OpenCode-*.md
+
+# dev logs
+dev.log
