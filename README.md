@@ -1,15 +1,18 @@
 # Casebook Timeline（悬疑推理书架）
 
-一个悬疑推理小说推荐站点，按时间线展示作品、支持按作者/系列筛选，并带收藏、评分、读后感等个人化功能。前身为纯静态页面（已归档至 `legacy/`），现已迁移为 **Next.js 16（App Router）+ Supabase** 全栈应用。
+一个悬疑推理小说推荐站点，按时间线展示作品、支持标签筛选与作者/系列专题，并带收藏、书架阅读进度、评分、读后感等个人化功能。前身为纯静态页面（已归档至 `legacy/`），现已迁移为 **Next.js 16（App Router）+ Supabase** 全栈应用。
 
-- 技术栈：Next.js 16.3（Turbopack）、React 19、TypeScript、Supabase（Postgres + Auth + RLS）
+- 技术栈：Next.js 16.3（Turbopack）、React 19、TypeScript、Supabase（Postgres + Auth + RLS + Storage）
 
 ## 功能特色
 
+- **侧边栏导航**：时间线 / 书架 / 注册 / 登入，激活项以 `[x]` 标记；登录后自动隐藏注册与登入；右侧边缘可**拖拽调节宽度**（双击恢复默认），宽度本地持久化
+- **打字机首页**：核心 slogan 逐字打出，多句循环播放，光标闪烁淡出
 - **时间线首页**：作品按出版时间排列，带雨幕/脚印动效
-- **筛选浏览**：按作者、系列筛选，按年份分组
+- **筛选浏览**：按标签筛选，按作者、系列进入专题页
 - **专题页**：每个作者/系列一个独立详情页
 - **用户系统**：注册/登录（Supabase Auth，邮箱验证）、会话自动刷新
+- **书架**：收藏的书自动进入书架（收藏 = 上架），带真实封面（Supabase Storage）；支持阅读进度条（自动推导未开始/阅读中/已读完）、状态循环切换、搜索与状态筛选、移出书架，按进度降序排列
 - **个人数据**：收藏、评分（1–5 星）、读后感，持久化到 Supabase，仅本人可见（RLS）
 
 ## 本地开发
@@ -24,8 +27,10 @@
 打开 Supabase 控制台 → SQL Editor，将 [`supabase/schema.sql`](supabase/schema.sql) 全部执行一次。它会创建：
 
 - `books`、`authors`、`series`（公开可读）
-- `favorites`、`ratings`、`notes`（RLS 保护，仅属主可读写）
+- `favorites`、`ratings`、`notes`、`shelf`（RLS 保护，仅属主可读写）
 - 种子数据：5 位作者、4 个系列、8 本推理小说
+
+> 重跑 `schema.sql` 时如遇 `policy already exists`（42710）报错属正常现象，表与策略已存在时只需执行增量语句；请勿删表重建，否则会丢失用户数据。
 
 ### 3. 配置环境变量
 
@@ -39,7 +44,16 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 > 项目 URL 不要带 `/rest/v1/` 后缀；ANON key 可在 Supabase 控制台 → Settings → API 找到。
 
-### 4. 启动
+### 4. 配置封面存储（可选）
+
+书架封面存放在 Supabase Storage：
+
+1. 控制台 → Storage → New bucket，名称 `covers`，勾选 **Public bucket**
+2. 将书籍封面以上传文件的文件名写入 `books.cover_url`，格式：
+   `https://<project-ref>.supabase.co/storage/v1/object/public/covers/<文件名>`
+3. 无封面时页面自动回退为色块 + 编号样式
+
+### 5. 启动
 
 ```bash
 npm install
@@ -55,16 +69,17 @@ npm run dev
 ```
 src/
 ├── app/
-│   ├── page.tsx              # 首页（时间线 + 筛选）
+│   ├── page.tsx              # 首页（时间线 + 筛选 + 打字机 slogan）
+│   ├── shelf/page.tsx        # 用户书架（收藏书籍 + 阅读进度）
 │   ├── topic/page.tsx        # 作者/系列专题页
 │   ├── login|signup/page.tsx # 登录/注册
 │   ├── auth/callback/route.ts# 邮箱验证回调
-│   ├── actions/              # Server Actions（auth、user-data）
+│   ├── actions/              # Server Actions（auth、user-data、shelf）
 │   └── globals.css
-├── components/               # 首页交互、表单、动效组件
+├── components/               # 侧边栏、书架、打字机、表单、动效组件
 ├── lib/supabase/             # 服务端/浏览器客户端
 ├── lib/data.ts               # 数据读取封装
 └── proxy.ts                  # 会话刷新代理（原 middleware）
-supabase/schema.sql           # 建表 + RLS + 种子数据
+supabase/schema.sql           # 建表 + RLS + 种子数据（仅存本地，不纳入仓库）
 legacy/                       # 迁移前的静态版备份
 ```
