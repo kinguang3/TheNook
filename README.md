@@ -34,7 +34,7 @@
 
 ### 3. 配置环境变量
 
-复制 `.env.example` 为 `.env.local`（本地无需提交）：
+在项目根目录创建 `.env.local`（本地无需提交）：
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
