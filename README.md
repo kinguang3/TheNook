@@ -95,7 +95,6 @@ src/
 │   └── types.ts                        # 领域类型
 └── proxy.ts                            # 会话刷新代理（原 middleware）
 supabase/schema.sql                     # 全量建表 + RLS + 种子数据
-legacy/                                 # 迁移前的静态版备份
 ```
 
 ## 开发提示
