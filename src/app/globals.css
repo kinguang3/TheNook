@@ -631,6 +631,140 @@ body.sidebar-resizing {
   margin: 12px 0 0;
 }
 
+/* ---------- 公开书评（时间线卡片内） ---------- */
+
+.public-reviews {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.public-reviews-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.public-reviews-head .review-label {
+  margin: 0;
+}
+
+.timeline-review-link {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    border-color var(--transition),
+    transform var(--transition);
+}
+
+.timeline-review-link:hover,
+.timeline-review-link:focus-visible {
+  border-color: var(--line-strong);
+  transform: translateX(2px);
+}
+
+.timeline-review-excerpt {
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+/* ---------- 书评页 ---------- */
+
+.book-reviews-head {
+  display: grid;
+  gap: 8px;
+}
+
+.book-reviews-title {
+  margin: 0;
+}
+
+.review-list {
+  display: grid;
+  gap: 14px;
+}
+
+.review-card {
+  scroll-margin-top: 24px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+/* 从时间线点击跳转时，目标评论短暂高亮 */
+.review-card:target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 24px rgba(215, 218, 223, 0.12);
+}
+
+.review-meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.review-author {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.review-content {
+  margin: 12px 0 0;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.review-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.review-edit-box .review-textarea {
+  min-height: 110px;
+}
+
+.review-form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.form-error {
+  margin: 12px 0 0;
+  color: var(--danger);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.review-gate {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px dashed var(--line);
+}
+
+.review-gate p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
 .topic-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

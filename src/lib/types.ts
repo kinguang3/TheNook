@@ -48,6 +48,26 @@ export type ShelfRow = ShelfEntry & {
   bookId: string;
 };
 
+export type Review = {
+  id: string;
+  bookId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  authorName: string;
+};
+
+export type TimelineReview = {
+  id: string;
+  bookId: string;
+  excerpt: string;
+  createdAt: string;
+  authorName: string;
+};
+
+export const REVIEW_MAX_LENGTH = 2000;
+
 export const emptyUserData: UserData = {
   favorites: [],
   ratings: {},

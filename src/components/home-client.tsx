@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   saveNote,
   setRating,
   toggleFavorite,
 } from "@/app/actions/user-data";
-import type { Book, UserData } from "@/lib/types";
+import type { Book, TimelineReview, UserData } from "@/lib/types";
 import { Typewriter } from "@/components/typewriter";
 
 type HomeClientProps = {
@@ -15,10 +15,18 @@ type HomeClientProps = {
   allTags: string[];
   initialUserData: UserData;
   isAuthed: boolean;
+  recentReviews: TimelineReview[];
 };
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "--";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
 }
 
 export function HomeClient({
@@ -26,6 +34,7 @@ export function HomeClient({
   allTags,
   initialUserData,
   isAuthed,
+  recentReviews,
 }: HomeClientProps) {
   const [activeTag, setActiveTag] = useState("全部");
   const [userData, setUserData] = useState(initialUserData);
@@ -171,6 +180,20 @@ export function HomeClient({
   const favoriteBooks = books.filter((book) =>
     userData.favorites.includes(book.id),
   );
+
+  // 每本书的公开书评（时间线展示最新两条，点击进入该书书评页并定位）
+  const reviewsByBook = useMemo(() => {
+    const map = new Map<string, TimelineReview[]>();
+    for (const review of recentReviews) {
+      const list = map.get(review.bookId);
+      if (list) {
+        list.push(review);
+      } else {
+        map.set(review.bookId, [review]);
+      }
+    }
+    return map;
+  }, [recentReviews]);
 
   const tags = ["全部", ...allTags];
 
@@ -383,6 +406,45 @@ export function HomeClient({
                           />
                           <p className="review-text">{displayNote}</p>
                         </div>
+
+                        {(() => {
+                          const bookReviews =
+                            reviewsByBook.get(book.id) ?? [];
+                          return (
+                            <div className="public-reviews">
+                              <div className="public-reviews-head">
+                                <p className="review-label">公开书评</p>
+                                <Link
+                                  className="info-link"
+                                  href={`/books/${book.id}/reviews`}
+                                >
+                                  全部书评 [{bookReviews.length}]
+                                </Link>
+                              </div>
+                              {bookReviews.length === 0 ? (
+                                <p className="meta-text">
+                                  还没有书评，去书评页抢沙发。
+                                </p>
+                              ) : (
+                                bookReviews.slice(0, 2).map((review) => (
+                                  <Link
+                                    key={review.id}
+                                    className="timeline-review-link"
+                                    href={`/books/${book.id}/reviews#review-${review.id}`}
+                                  >
+                                    <span className="meta-text">
+                                      {review.authorName} ·{" "}
+                                      {formatDate(review.createdAt)}
+                                    </span>
+                                    <span className="timeline-review-excerpt">
+                                      {review.excerpt}
+                                    </span>
+                                  </Link>
+                                ))
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </article>

@@ -3,6 +3,7 @@ import {
   getAuthors,
   getAllTags,
   getBooks,
+  getRecentReviews,
   getSeries,
   getUserData,
 } from "@/lib/data";
@@ -23,7 +24,10 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userData = user ? await getUserData(supabase, user.id) : emptyUserData;
+  const [userData, recentReviews] = await Promise.all([
+    user ? getUserData(supabase, user.id) : Promise.resolve(emptyUserData),
+    getRecentReviews(supabase),
+  ]);
 
   return (
     <>
@@ -33,6 +37,7 @@ export default async function HomePage() {
         allTags={getAllTags(books)}
         initialUserData={userData}
         isAuthed={Boolean(user)}
+        recentReviews={recentReviews}
       />
     </>
   );

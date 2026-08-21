@@ -2,12 +2,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Author,
   Book,
+  Review,
   Series,
   ShelfData,
+  TimelineReview,
   UserData,
 } from "@/lib/types";
 
 const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
+const excerptLength = 80;
 
 export async function getAuthors(
   supabase: SupabaseClient,
@@ -114,4 +117,62 @@ export async function getShelfData(
     };
   }
   return shelf;
+}
+
+type ReviewRow = {
+  id: string;
+  book_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  updated_at?: string;
+  profiles: { display_name: string } | null;
+};
+
+function toAuthorName(row: ReviewRow): string {
+  return row.profiles?.display_name ?? "匿名侦探";
+}
+
+export async function getReviewsByBook(
+  supabase: SupabaseClient,
+  bookId: string,
+): Promise<Review[]> {
+  const { data } = await supabase
+    .from("reviews")
+    .select(
+      "id, book_id, user_id, content, created_at, updated_at, profiles(display_name)",
+    )
+    .eq("book_id", bookId)
+    .order("created_at", { ascending: false });
+
+  return ((data ?? []) as unknown as ReviewRow[]).map((row) => ({
+    id: row.id,
+    bookId: row.book_id,
+    userId: row.user_id,
+    content: row.content,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at ?? row.created_at,
+    authorName: toAuthorName(row),
+  }));
+}
+
+export async function getRecentReviews(
+  supabase: SupabaseClient,
+): Promise<TimelineReview[]> {
+  const { data } = await supabase
+    .from("reviews")
+    .select("id, book_id, content, created_at, profiles(display_name)")
+    .order("created_at", { ascending: false })
+    .limit(300);
+
+  return ((data ?? []) as unknown as ReviewRow[]).map((row) => ({
+    id: row.id,
+    bookId: row.book_id,
+    excerpt:
+      row.content.length > excerptLength
+        ? `${row.content.slice(0, excerptLength)}……`
+        : row.content,
+    createdAt: row.created_at,
+    authorName: toAuthorName(row),
+  }));
 }
