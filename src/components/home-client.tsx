@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  saveNote,
   setRating,
   toggleFavorite,
 } from "@/app/actions/user-data";
@@ -40,12 +39,10 @@ export function HomeClient({
   const [userData, setUserData] = useState(initialUserData);
   const [busyFavorites, setBusyFavorites] = useState<Set<string>>(new Set());
   const [busyRatings, setBusyRatings] = useState<Set<string>>(new Set());
-  const [busyNotes, setBusyNotes] = useState<Set<string>>(new Set());
 
   const timelineRootRef = useRef<HTMLDivElement>(null);
   const timelineProgressRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const noteTimersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   const applyResult = useCallback((result: unknown) => {
     if (!result || typeof result !== "object") return;
@@ -90,32 +87,6 @@ export function HomeClient({
     },
     [isAuthed, busyRatings, applyResult],
   );
-
-  const handleNoteChange = useCallback(
-    (bookId: string, content: string) => {
-      if (!isAuthed) return;
-
-      const timer = noteTimersRef.current.get(bookId);
-      if (timer) clearTimeout(timer);
-
-      noteTimersRef.current.set(
-        bookId,
-        setTimeout(async () => {
-          const result = await saveNote(bookId, content);
-          applyResult(result);
-        }, 600),
-      );
-    },
-    [isAuthed, applyResult],
-  );
-
-  useEffect(() => {
-    const timers = noteTimersRef.current;
-    return () => {
-      timers.forEach((timer) => clearTimeout(timer));
-      timers.clear();
-    };
-  }, []);
 
   // 时间线滚动进度
   useEffect(() => {
@@ -285,9 +256,9 @@ export function HomeClient({
                 const layoutSide = index % 2 === 0 ? "left" : "right";
                 const isFavorite = userData.favorites.includes(book.id);
                 const rating = userData.ratings[book.id] ?? book.rating;
-                const displayNote = userData.notes[book.id] || book.note;
                 const favoriteBusy = busyFavorites.has(book.id);
                 const ratingBusy = busyRatings.has(book.id);
+                const bookReviews = reviewsByBook.get(book.id) ?? [];
 
                 return (
                   <article
@@ -391,60 +362,38 @@ export function HomeClient({
                           <span className="meta-text">{rating} / 5</span>
                         </div>
 
-                        <div className="review-box">
-                          <p className="review-label">
-                            读后感{isAuthed ? "" : "（登录后可保存）"}
-                          </p>
-                          <textarea
-                            className="review-textarea"
-                            defaultValue={displayNote}
-                            placeholder="写下你的判断、动机分析或余味。"
-                            onChange={(event) =>
-                              handleNoteChange(book.id, event.target.value)
-                            }
-                            readOnly={!isAuthed}
-                          />
-                          <p className="review-text">{displayNote}</p>
+                        <div className="public-reviews">
+                          <div className="public-reviews-head">
+                            <p className="review-label">公开书评</p>
+                            <Link
+                              className="info-link"
+                              href={`/books/${book.id}/reviews`}
+                            >
+                              全部书评 [{bookReviews.length}]
+                            </Link>
+                          </div>
+                          {bookReviews.length === 0 ? (
+                            <p className="meta-text">
+                              还没有书评，去书评页抢沙发。
+                            </p>
+                          ) : (
+                            bookReviews.slice(0, 2).map((review) => (
+                              <Link
+                                key={review.id}
+                                className="timeline-review-link"
+                                href={`/books/${book.id}/reviews#review-${review.id}`}
+                              >
+                                <span className="meta-text">
+                                  {review.authorName} ·{" "}
+                                  {formatDate(review.createdAt)}
+                                </span>
+                                <span className="timeline-review-excerpt">
+                                  {review.excerpt}
+                                </span>
+                              </Link>
+                            ))
+                          )}
                         </div>
-
-                        {(() => {
-                          const bookReviews =
-                            reviewsByBook.get(book.id) ?? [];
-                          return (
-                            <div className="public-reviews">
-                              <div className="public-reviews-head">
-                                <p className="review-label">公开书评</p>
-                                <Link
-                                  className="info-link"
-                                  href={`/books/${book.id}/reviews`}
-                                >
-                                  全部书评 [{bookReviews.length}]
-                                </Link>
-                              </div>
-                              {bookReviews.length === 0 ? (
-                                <p className="meta-text">
-                                  还没有书评，去书评页抢沙发。
-                                </p>
-                              ) : (
-                                bookReviews.slice(0, 2).map((review) => (
-                                  <Link
-                                    key={review.id}
-                                    className="timeline-review-link"
-                                    href={`/books/${book.id}/reviews#review-${review.id}`}
-                                  >
-                                    <span className="meta-text">
-                                      {review.authorName} ·{" "}
-                                      {formatDate(review.createdAt)}
-                                    </span>
-                                    <span className="timeline-review-excerpt">
-                                      {review.excerpt}
-                                    </span>
-                                  </Link>
-                                ))
-                              )}
-                            </div>
-                          );
-                        })()}
                       </div>
                     </div>
                   </article>
