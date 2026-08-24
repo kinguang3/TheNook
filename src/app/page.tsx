@@ -3,6 +3,7 @@ import {
   getAuthors,
   getAllTags,
   getBooks,
+  getRatingStats,
   getRecentReviews,
   getSeries,
   getUserData,
@@ -29,10 +30,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [userData, recentReviews] = await Promise.all([
+  const [userData, recentReviews, ratingStats] = await Promise.all([
     user ? getUserData(supabase, user.id) : Promise.resolve(emptyUserData),
     getRecentReviews(supabase),
+    getRatingStats(supabase),
   ]);
+
+  const ratingAverages = Object.fromEntries(
+    ratingStats.map((stat) => [stat.bookId, stat.avgValue]),
+  );
 
   return (
     <>
@@ -44,6 +50,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         isAuthed={Boolean(user)}
         recentReviews={recentReviews}
         focusBookId={focus ?? null}
+        ratingAverages={ratingAverages}
       />
     </>
   );

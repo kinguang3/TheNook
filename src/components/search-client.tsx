@@ -9,6 +9,7 @@ type SearchClientProps = {
   books: Book[];
   authors: Author[];
   initialQuery: string;
+  ratingAverages: Record<string, number>;
 };
 
 const DEBOUNCE_MS = 250;
@@ -21,6 +22,7 @@ export function SearchClient({
   books,
   authors,
   initialQuery,
+  ratingAverages,
 }: SearchClientProps) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
@@ -188,7 +190,9 @@ export function SearchClient({
                       <div className="search-row-head">
                         <h3 className="search-row-title">{book.title}</h3>
                         <span className="meta-text">
-                          [{book.year}] {book.readTime} · {book.rating.toFixed(1)} / 5
+                          [{book.year}] {book.readTime} ·{" "}
+                          {(ratingAverages[book.id] ?? book.rating).toFixed(1)}{" "}
+                          / 5
                         </span>
                       </div>
                       <p className="meta-text">

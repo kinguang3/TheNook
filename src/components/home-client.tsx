@@ -13,6 +13,7 @@ type HomeClientProps = {
   isAuthed: boolean;
   recentReviews: TimelineReview[];
   focusBookId?: string | null;
+  ratingAverages: Record<string, number>;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -33,6 +34,7 @@ export function HomeClient({
   isAuthed,
   recentReviews,
   focusBookId,
+  ratingAverages,
 }: HomeClientProps) {
   const [activeTag, setActiveTag] = useState("全部");
   const [userData, setUserData] = useState(initialUserData);
@@ -261,7 +263,8 @@ export function HomeClient({
               {filteredBooks.map((book, index) => {
                 const layoutSide = index % 2 === 0 ? "left" : "right";
                 const isFavorite = userData.favorites.includes(book.id);
-                const rating = userData.ratings[book.id] ?? book.rating;
+                // 首页评分固定展示所有用户的平均评分，无数据时回退档案分
+                const rating = ratingAverages[book.id] ?? book.rating;
                 const favoriteBusy = busyFavorites.has(book.id);
                 const bookReviews = reviewsByBook.get(book.id) ?? [];
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getAuthors, getBooks, getSeries } from "@/lib/data";
+import { getAuthors, getBooks, getRatingStats, getSeries } from "@/lib/data";
 import { SearchClient } from "@/components/search-client";
 
 type SearchPageProps = {
@@ -30,11 +30,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     redirect("/login");
   }
 
-  const [authors, seriesList] = await Promise.all([
+  const [authors, seriesList, ratingStats] = await Promise.all([
     getAuthors(supabase),
     getSeries(supabase),
+    getRatingStats(supabase),
   ]);
   const books = await getBooks(supabase, authors, seriesList);
+  const ratingAverages = Object.fromEntries(
+    ratingStats.map((stat) => [stat.bookId, stat.avgValue]),
+  );
 
   return (
     <main>
@@ -42,6 +46,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         books={books}
         authors={authors}
         initialQuery={q ?? ""}
+        ratingAverages={ratingAverages}
       />
     </main>
   );
