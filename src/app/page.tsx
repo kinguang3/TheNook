@@ -11,7 +11,12 @@ import { emptyUserData } from "@/lib/types";
 import { HomeClient } from "@/components/home-client";
 import { FootprintsLayer } from "@/components/footprints-layer";
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams: Promise<{ focus?: string }>;
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { focus } = await searchParams;
   const supabase = await createClient();
 
   const [authors, seriesList] = await Promise.all([
@@ -38,6 +43,7 @@ export default async function HomePage() {
         initialUserData={userData}
         isAuthed={Boolean(user)}
         recentReviews={recentReviews}
+        focusBookId={focus ?? null}
       />
     </>
   );

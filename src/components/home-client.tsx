@@ -15,6 +15,7 @@ type HomeClientProps = {
   initialUserData: UserData;
   isAuthed: boolean;
   recentReviews: TimelineReview[];
+  focusBookId?: string | null;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -34,6 +35,7 @@ export function HomeClient({
   initialUserData,
   isAuthed,
   recentReviews,
+  focusBookId,
 }: HomeClientProps) {
   const [activeTag, setActiveTag] = useState("全部");
   const [userData, setUserData] = useState(initialUserData);
@@ -87,6 +89,32 @@ export function HomeClient({
     },
     [isAuthed, busyRatings, applyResult],
   );
+
+  // 从搜索页跳转：重置标签筛选，滚动到目标节点并短暂高亮
+  useEffect(() => {
+    if (!focusBookId) return;
+    setActiveTag("全部");
+
+    let highlightTimer = 0;
+    // 等待筛选重置后的 DOM 提交完成再定位
+    const locateTimer = window.setTimeout(() => {
+      const target = document.querySelector(
+        `[data-book-id="${CSS.escape(focusBookId)}"]`,
+      );
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.classList.add("timeline-focus");
+      highlightTimer = window.setTimeout(
+        () => target.classList.remove("timeline-focus"),
+        2600,
+      );
+    }, 100);
+
+    return () => {
+      window.clearTimeout(locateTimer);
+      if (highlightTimer) window.clearTimeout(highlightTimer);
+    };
+  }, [focusBookId]);
 
   // 时间线滚动进度
   useEffect(() => {
