@@ -231,9 +231,10 @@ select u.id, '读者-' || substr(u.id::text, 1, 8)
 from auth.users u
 on conflict (id) do nothing;
 
--- ---------- ���־ۺ���ͼ���Ƽ��㷨 / �ۺ���������Դ�� ----------
--- �ײ� ratings �� RLS �����˿ɶ�������ͼ�� owner Ȩ�޾ۺ�ȫ�����ݣ�
--- ��ͨ����ͼ������ RLS ����������ȡ�ۺϽ�����������κ��û���ϸ�У���
+-- ---------- 评分聚合视图（推荐算法 / 综合评分数据源） ----------
+-- 底层 ratings 表 RLS 仅本人可读；此视图以 owner 权限聚合全量数据，
+-- 仅暴露 book_id / avg_value / rating_count，读不到任何用户明细行。
+-- 注意：PostgreSQL 视图不支持 RLS，公开读取通过 GRANT 授权。
 
 create or replace view public.rating_stats as
 select
@@ -243,9 +244,4 @@ select
 from public.ratings
 group by book_id;
 
-alter table public.rating_stats enable row level security;
-
-drop policy if exists "rating stats are publicly readable" on public.rating_stats;
-create policy "rating stats are publicly readable"
-  on public.rating_stats for select
-  using (true);
+grant select on public.rating_stats to anon, authenticated;
