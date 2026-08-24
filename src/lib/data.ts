@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Author,
   Book,
+  RatingStat,
   Review,
   Series,
   ShelfData,
@@ -69,6 +70,21 @@ export async function getBooks(
     tags: book.tags ?? [],
     blurb: book.blurb,
     note: book.note,
+  }));
+}
+
+export async function getRatingStats(
+  supabase: SupabaseClient,
+): Promise<RatingStat[]> {
+  // rating_stats 是聚合视图（视图未在 Supabase 创建时查询失败，返回空数组回退档案评分）
+  const { data, error } = await supabase
+    .from("rating_stats")
+    .select("book_id, avg_value, rating_count");
+  if (error) return [];
+  return (data ?? []).map((row) => ({
+    bookId: row.book_id as string,
+    avgValue: Number(row.avg_value),
+    ratingCount: Number(row.rating_count),
   }));
 }
 

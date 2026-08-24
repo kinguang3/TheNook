@@ -2,10 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  setRating,
-  toggleFavorite,
-} from "@/app/actions/user-data";
+import { toggleFavorite } from "@/app/actions/user-data";
 import type { Book, TimelineReview, UserData } from "@/lib/types";
 import { Typewriter } from "@/components/typewriter";
 
@@ -40,7 +37,6 @@ export function HomeClient({
   const [activeTag, setActiveTag] = useState("全部");
   const [userData, setUserData] = useState(initialUserData);
   const [busyFavorites, setBusyFavorites] = useState<Set<string>>(new Set());
-  const [busyRatings, setBusyRatings] = useState<Set<string>>(new Set());
 
   const timelineRootRef = useRef<HTMLDivElement>(null);
   const timelineProgressRef = useRef<HTMLDivElement>(null);
@@ -70,24 +66,6 @@ export function HomeClient({
       }
     },
     [isAuthed, busyFavorites, applyResult],
-  );
-
-  const handleSetRating = useCallback(
-    async (bookId: string, value: number) => {
-      if (!isAuthed || busyRatings.has(bookId)) return;
-      setBusyRatings((prev) => new Set(prev).add(bookId));
-      try {
-        const result = await setRating(bookId, value);
-        applyResult(result);
-      } finally {
-        setBusyRatings((prev) => {
-          const next = new Set(prev);
-          next.delete(bookId);
-          return next;
-        });
-      }
-    },
-    [isAuthed, busyRatings, applyResult],
   );
 
   // 从搜索页跳转：重置标签筛选，滚动到目标节点并短暂高亮
@@ -285,7 +263,6 @@ export function HomeClient({
                 const isFavorite = userData.favorites.includes(book.id);
                 const rating = userData.ratings[book.id] ?? book.rating;
                 const favoriteBusy = busyFavorites.has(book.id);
-                const ratingBusy = busyRatings.has(book.id);
                 const bookReviews = reviewsByBook.get(book.id) ?? [];
 
                 return (
@@ -372,23 +349,6 @@ export function HomeClient({
                           <span className="rating-value">
                             {rating.toFixed(1)} / 5
                           </span>
-                          <div className="star-group">
-                            {Array.from({ length: 5 }, (_, index) => {
-                              const value = index + 1;
-                              return (
-                                <button
-                                  key={value}
-                                  type="button"
-                                  className={`star-button${value <= rating ? " active" : ""}`}
-                                  aria-label={`评分 ${value} 星`}
-                                  onClick={() => handleSetRating(book.id, value)}
-                                  disabled={!isAuthed || ratingBusy}
-                                >
-                                  ★
-                                </button>
-                              );
-                            })}
-                          </div>
                         </div>
 
                         <div className="public-reviews">

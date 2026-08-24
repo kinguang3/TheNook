@@ -614,6 +614,62 @@ body.sidebar-resizing {
   color: var(--star);
 }
 
+/* ---------- 用户评分交互（书籍详情/书评页） ---------- */
+
+.reviews-rating-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.rating-figure {
+  margin: 6px 0 2px;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+.user-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.user-rating-stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+/* 视觉小星星 + 扩大的点击热区（移动端友好） */
+.user-rating-stars .star-button {
+  font-size: 0.95rem;
+  padding: 8px 6px;
+}
+
+.user-rating-value {
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.user-rating-hint {
+  margin-top: 4px;
+  transition: color var(--transition), opacity var(--transition);
+}
+
+.user-rating-hint.saved {
+  color: rgba(242, 207, 120, 0.75);
+}
+
+.user-rating-hint.error {
+  color: var(--danger);
+}
+
 .review-box {
   margin-top: 16px;
   padding-top: 16px;

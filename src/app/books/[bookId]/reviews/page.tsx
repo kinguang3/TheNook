@@ -4,8 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getAuthors,
   getBooks,
+  getRatingStats,
   getReviewsByBook,
   getSeries,
+  getUserData,
 } from "@/lib/data";
 import { ReviewsClient } from "@/components/reviews-client";
 
@@ -29,17 +31,28 @@ export default async function BookReviewsPage(
     notFound();
   }
 
-  const [reviews, userData] = await Promise.all([
+  const [reviews, ratingStats] = await Promise.all([
     getReviewsByBook(supabase, bookId),
-    supabase.auth.getUser(),
+    getRatingStats(supabase),
   ]);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userData = user ? await getUserData(supabase, user.id) : null;
+  const stat = ratingStats.find((entry) => entry.bookId === bookId) ?? null;
 
   return (
     <main>
       <ReviewsClient
         book={book}
         initialReviews={reviews}
-        currentUserId={userData.data.user?.id ?? null}
+        currentUserId={user?.id ?? null}
+        initialUserRating={userData?.ratings[bookId] ?? null}
+        initialRatingStat={
+          stat && stat.ratingCount > 0
+            ? { avgValue: stat.avgValue, ratingCount: stat.ratingCount }
+            : null
+        }
       />
     </main>
   );

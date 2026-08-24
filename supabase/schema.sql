@@ -225,3 +225,22 @@ insert into public.profiles (id, display_name)
 select u.id, 'è¯»è€…-' || substr(u.id::text, 1, 8)
 from auth.users u
 on conflict (id) do nothing;
+
+-- ---------- ÆÀ·Ö¾ÛºÏÊÓÍ¼£¨ÍÆ¼öËã·¨ / ×ÛºÏÆÀ·ÖÊı¾İÔ´£© ----------
+-- µ×²ã ratings ±í RLS ½ö±¾ÈË¿É¶Á£»´ËÊÓÍ¼ÒÔ owner È¨ÏŞ¾ÛºÏÈ«Á¿Êı¾İ£¬
+-- ²¢Í¨¹ıÊÓÍ¼×ÔÉíµÄ RLS ÔÊĞí¹«¿ª¶ÁÈ¡¾ÛºÏ½á¹û£¨¶Á²»µ½ÈÎºÎÓÃ»§Ã÷Ï¸ĞĞ£©¡£
+
+create or replace view public.rating_stats as
+select
+  book_id,
+  avg(value)::numeric(3, 2) as avg_value,
+  count(*)::integer as rating_count
+from public.ratings
+group by book_id;
+
+alter table public.rating_stats enable row level security;
+
+drop policy if exists "rating stats are publicly readable" on public.rating_stats;
+create policy "rating stats are publicly readable"
+  on public.rating_stats for select
+  using (true);

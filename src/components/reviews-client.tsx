@@ -9,11 +9,19 @@ import {
 } from "@/app/actions/reviews";
 import { REVIEW_MAX_LENGTH } from "@/lib/types";
 import type { Book, Review } from "@/lib/types";
+import { UserRating } from "@/components/user-rating";
+
+type RatingStatView = {
+  avgValue: number;
+  ratingCount: number;
+};
 
 type ReviewsClientProps = {
   book: Book;
   initialReviews: Review[];
   currentUserId: string | null;
+  initialUserRating: number | null;
+  initialRatingStat: RatingStatView | null;
 };
 
 function formatDate(iso: string): string {
@@ -27,6 +35,8 @@ export function ReviewsClient({
   book,
   initialReviews,
   currentUserId,
+  initialUserRating,
+  initialRatingStat,
 }: ReviewsClientProps) {
   const [reviews, setReviews] = useState(initialReviews);
   const [content, setContent] = useState("");
@@ -126,6 +136,31 @@ export function ReviewsClient({
         <p className="meta-text">
           {book.authorName} / {book.year} / {book.seriesName}
         </p>
+        <div className="reviews-rating-row">
+          <div>
+            <p className="eyebrow">[+] Rating</p>
+            {initialRatingStat ? (
+              <>
+                <p className="rating-figure">
+                  {initialRatingStat.avgValue.toFixed(1)} / 5
+                </p>
+                <p className="meta-text">
+                  读者综合评分 · {initialRatingStat.ratingCount} 人参与
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="rating-figure">{book.rating.toFixed(1)} / 5</p>
+                <p className="meta-text">档案评分</p>
+              </>
+            )}
+          </div>
+          <UserRating
+            bookId={book.id}
+            initialRating={initialUserRating}
+            isAuthed={isAuthed}
+          />
+        </div>
         <div className="card-links">
           <Link className="info-link" href="/#timeline">
             ← 返回时间线

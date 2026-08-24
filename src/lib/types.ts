@@ -66,6 +66,12 @@ export type TimelineReview = {
   authorName: string;
 };
 
+export type RatingStat = {
+  bookId: string;
+  avgValue: number;
+  ratingCount: number;
+};
+
 export const REVIEW_MAX_LENGTH = 2000;
 
 export const emptyUserData: UserData = {
