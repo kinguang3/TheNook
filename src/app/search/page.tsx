@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthors, getBooks, getSeries } from "@/lib/data";
 import { SearchClient } from "@/components/search-client";
@@ -20,6 +21,14 @@ export async function generateMetadata({
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const supabase = await createClient();
+
+  // 搜索需登录：未登录直接跳转登录页
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
 
   const [authors, seriesList] = await Promise.all([
     getAuthors(supabase),
