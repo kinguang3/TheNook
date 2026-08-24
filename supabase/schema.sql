@@ -46,9 +46,14 @@ create table if not exists public.ratings (
   user_id uuid not null references auth.users(id) on delete cascade,
   book_id text not null references public.books(id) on delete cascade,
   value integer not null check (value between 1 and 5),
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   primary key (user_id, book_id)
 );
+
+-- æ¨èç®—æ³•æŒ‰ä¹¦ç›®èšåˆè¯„åˆ†æ—¶èµ°æ­¤ç´¢å¼•
+create index if not exists idx_ratings_book
+  on public.ratings (book_id);
 
 create table if not exists public.notes (
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -226,9 +231,9 @@ select u.id, 'è¯»è€…-' || substr(u.id::text, 1, 8)
 from auth.users u
 on conflict (id) do nothing;
 
--- ---------- ÆÀ·Ö¾ÛºÏÊÓÍ¼£¨ÍÆ¼öËã·¨ / ×ÛºÏÆÀ·ÖÊı¾İÔ´£© ----------
--- µ×²ã ratings ±í RLS ½ö±¾ÈË¿É¶Á£»´ËÊÓÍ¼ÒÔ owner È¨ÏŞ¾ÛºÏÈ«Á¿Êı¾İ£¬
--- ²¢Í¨¹ıÊÓÍ¼×ÔÉíµÄ RLS ÔÊĞí¹«¿ª¶ÁÈ¡¾ÛºÏ½á¹û£¨¶Á²»µ½ÈÎºÎÓÃ»§Ã÷Ï¸ĞĞ£©¡£
+-- ---------- ï¿½ï¿½ï¿½Ö¾Ûºï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ã·¨ / ï¿½Ûºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ ----------
+-- ï¿½×²ï¿½ ratings ï¿½ï¿½ RLS ï¿½ï¿½ï¿½ï¿½ï¿½Ë¿É¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ owner È¨ï¿½Ş¾Ûºï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½İ£ï¿½
+-- ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RLS ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ÛºÏ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½Ã»ï¿½ï¿½ï¿½Ï¸ï¿½Ğ£ï¿½ï¿½ï¿½
 
 create or replace view public.rating_stats as
 select

@@ -70,8 +70,9 @@ export async function setRating(
     return { error: "请先登录后操作。" };
   }
 
+  // upsert 更新分支不会触发列默认值，updated_at 需显式写入
   await supabase.from("ratings").upsert(
-    { user_id: user.id, book_id: bookId, value },
+    { user_id: user.id, book_id: bookId, value, updated_at: new Date().toISOString() },
     { onConflict: "user_id,book_id" },
   );
 
