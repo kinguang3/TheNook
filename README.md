@@ -15,12 +15,13 @@ Next.js 16 · React 19 · TypeScript · Supabase
 ## 功能特色
 
 - **时间线首页**：作品按出版年份纵向展开，配雨幕与脚印动效；核心 slogan 以打字机效果多句循环播放
+- **全局搜索**：单一输入框同时检索作者（名/摘要/相关书）、书籍（标题/摘要/标签/作者/系列）、时间线节点（标题/年份/标签），URL 同步（`/search?q=`）可分享；跳转时间线时自动定位节点并短暂高亮
 - **筛选浏览**：按标签筛选书目，按作者、系列进入专题页
-- **公开书评**：每本书拥有独立书评页（`/books/<book_id>/reviews`），登录后可发表、编辑、删除自己的评论；时间线卡片直接展示最新书评，点击直达对应书籍并锚点定位高亮
+- **公开书评**：每本书拥有独立书评页（`/books/<bookId>/reviews`），登录后可发表、编辑、删除自己的评论；时间线卡片直接展示最新书评，点击直达对应书籍并锚点定位高亮
 - **书架**：收藏即上架，带真实封面（Supabase Storage）；阅读进度条自动推导未开始 / 阅读中 / 已读完，支持状态切换、搜索筛选、移出书架
 - **个人数据**：收藏、评分（1–5 星）持久化到 Supabase，仅本人可见（RLS）
+- **读者综合评分**：聚合所有用户评分的平均分（`rating_stats` 视图），全站统一展示；书评页同时显示个人评分交互
 - **用户系统**：注册 / 登录（Supabase Auth，邮箱验证），会话自动刷新
-- **侧边栏导航**：激活项以 `[x]` 标记，登录后自动隐藏注册与登入；右缘可拖拽调节宽度（双击复位），宽度本地持久化
 
 ## 快速开始
 
@@ -38,12 +39,13 @@ Next.js 16 · React 19 · TypeScript · Supabase
 
 包含的数据表：
 
-| 表 | 用途 | 可见性 |
+| 表/视图 | 用途 | 可见性 |
 | --- | --- | --- |
 | `authors` / `series` / `books` | 目录数据（含 5 位作者、4 个系列、8 本书的种子数据） | 公开可读 |
 | `favorites` / `ratings` / `notes` / `shelf` | 用户个人数据 | 仅属主（RLS） |
 | `profiles` | 评论者昵称，注册时由触发器自动建档 | 公开可读 |
 | `reviews` | 公开书评，绑定 book_id + user_id | 公开可读，仅本人可写 |
+| `rating_stats`（视图） | 聚合所有用户评分的平均分与人数，支撑首页/搜索页综合评分展示 | 公开可读（GRANT），不含 user_id 等可识别列 |
 
 > 请勿删表重建，否则会丢失用户数据。
 
@@ -81,6 +83,7 @@ npm run dev
 src/
 ├── app/
 │   ├── page.tsx                        # 首页（时间线 + 筛选 + 书评预览）
+│   ├── search/page.tsx                 # 全局搜索页（需登录）
 │   ├── books/[bookId]/reviews/page.tsx # 每本书的独立书评页
 │   ├── shelf/page.tsx                  # 用户书架（收藏 + 阅读进度）
 │   ├── topic/page.tsx                  # 作者/系列专题页
@@ -88,13 +91,13 @@ src/
 │   ├── auth/callback/route.ts          # 邮箱验证回调
 │   ├── actions/                        # Server Actions（auth / user-data / shelf / reviews）
 │   └── globals.css
-├── components/                         # 侧边栏、书架、书评、打字机、动效组件
+├── components/                         # 侧边栏、书架、书评、搜索、打字机、动效组件
 ├── lib/
 │   ├── supabase/                       # 服务端/浏览器客户端
 │   ├── data.ts                         # 数据读取封装
 │   └── types.ts                        # 领域类型
-└── proxy.ts                            # 会话刷新代理（原 middleware）
-supabase/schema.sql                     # 全量建表 + RLS + 种子数据
+└── proxy.ts                            # 会话刷新代理（Next.js 16 替代 middleware）
+supabase/schema.sql                     # 全量建表 + RLS + 种子数据 + 聚合视图
 ```
 
 ## 开发提示
@@ -102,3 +105,5 @@ supabase/schema.sql                     # 全量建表 + RLS + 种子数据
 - 本项目使用 Next.js 16，`middleware` 已更名为 `src/proxy.ts`
 - 改动类型或页面后，先运行 `npx next typegen` 再 `npx tsc --noEmit` 做类型检查
 - 书评权限模型：所有人可读，登录用户可发表（身份由 RLS `auth.uid()` 保证），仅作者本人可修改/删除
+- `rating_stats` 是 security definer 视图，不支持 RLS；公开读取通过 `grant select to anon, authenticated` 授权
+- 搜索页面需要登录，未登录访问会自动重定向到 `/login`
