@@ -369,6 +369,9 @@ export function HomeClient({
 
                         <div className="rating-row">
                           <span className="meta-text">评分</span>
+                          <span className="rating-value">
+                            {rating.toFixed(1)} / 5
+                          </span>
                           <div className="star-group">
                             {Array.from({ length: 5 }, (_, index) => {
                               const value = index + 1;
@@ -377,7 +380,6 @@ export function HomeClient({
                                   key={value}
                                   type="button"
                                   className={`star-button${value <= rating ? " active" : ""}`}
-                                  data-star-value={value}
                                   aria-label={`评分 ${value} 星`}
                                   onClick={() => handleSetRating(book.id, value)}
                                   disabled={!isAuthed || ratingBusy}
@@ -387,7 +389,6 @@ export function HomeClient({
                               );
                             })}
                           </div>
-                          <span className="meta-text">{rating} / 5</span>
                         </div>
 
                         <div className="public-reviews">

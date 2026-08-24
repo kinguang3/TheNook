@@ -188,7 +188,7 @@ export function SearchClient({
                       <div className="search-row-head">
                         <h3 className="search-row-title">{book.title}</h3>
                         <span className="meta-text">
-                          [{book.year}] {book.readTime}
+                          [{book.year}] {book.readTime} · {book.rating.toFixed(1)} / 5
                         </span>
                       </div>
                       <p className="meta-text">

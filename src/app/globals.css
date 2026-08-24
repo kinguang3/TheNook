@@ -579,30 +579,39 @@ body.sidebar-resizing {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-top: 14px;
+}
+
+.rating-value {
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+  white-space: nowrap;
 }
 
 .star-group {
   display: inline-flex;
-  gap: 6px;
+  gap: 3px;
 }
 
 .star-button {
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(242, 207, 120, 0.3);
+  color: rgba(244, 244, 245, 0.16);
   cursor: pointer;
-  font-size: 1.1rem;
-  transition: color var(--transition), transform var(--transition);
+  font-size: 0.78rem;
+  transition: color var(--transition);
 }
 
-.star-button.active,
+.star-button.active {
+  color: rgba(242, 207, 120, 0.55);
+}
+
 .star-button:hover,
 .star-button:focus-visible {
   color: var(--star);
-  transform: translateY(-1px);
 }
 
 .review-box {
