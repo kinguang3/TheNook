@@ -50,3 +50,8 @@ OpenCode-*.md
 
 # dev logs
 dev.log
+
+# Python
+__pycache__/
+*.pyc
+venv/

@@ -1,0 +1,5 @@
+﻿supabase
+python-dotenv
+pandas
+numpy
+scikit-learn
