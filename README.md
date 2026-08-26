@@ -21,6 +21,7 @@ Next.js 16 · React 19 · TypeScript · Supabase
 - **书架**：收藏即上架，带真实封面（Supabase Storage）；阅读进度条自动推导未开始 / 阅读中 / 已读完，支持状态切换、搜索筛选、移出书架
 - **个人数据**：收藏、评分（1–5 星）持久化到 Supabase，仅本人可见（RLS）
 - **读者综合评分**：聚合所有用户评分的平均分（`rating_stats` 视图），全站统一展示；书评页同时显示个人评分交互
+- **推荐算法（离线）**：Python 实现的 Item-Based 协同过滤，基于全体用户评分计算书籍相似度并生成 Top-N 推荐；附测试数据脚本支持回归测试
 - **用户系统**：注册 / 登录（Supabase Auth，邮箱验证），会话自动刷新
 
 ## 快速开始
@@ -98,6 +99,13 @@ src/
 │   └── types.ts                        # 领域类型
 └── proxy.ts                            # 会话刷新代理（Next.js 16 替代 middleware）
 supabase/schema.sql                     # 全量建表 + RLS + 种子数据 + 聚合视图
+recommendation/                         # 推荐引擎（Python，离线运行）
+├── config.py                           # 读取 .env 中的 Supabase 配置
+├── data_loader.py                      # 拉取 ratings / books / authors
+├── recommender.py                      # Item-Based 协同过滤核心算法
+├── main.py                             # 命令行入口（--user-id --top-n）
+├── test_data.py                        # 幂等创建测试用户与评分（回归测试用）
+└── cleanup_test_data.py                # 清理测试数据（只删 @test.example 用户）
 ```
 
 ## 开发提示
@@ -107,3 +115,24 @@ supabase/schema.sql                     # 全量建表 + RLS + 种子数据 + �
 - 书评权限模型：所有人可读，登录用户可发表（身份由 RLS `auth.uid()` 保证），仅作者本人可修改/删除
 - `rating_stats` 是 security definer 视图，不支持 RLS；公开读取通过 `grant select to anon, authenticated` 授权
 - 搜索页面需要登录，未登录访问会自动重定向到 `/login`
+
+## 推荐引擎
+
+独立于 Next.js 的离线 Python 模块，直接读取 Supabase 数据计算推荐：
+
+```bash
+cd recommendation
+python -m venv venv
+venv\Scripts\activate            # Windows
+pip install -r requirements.txt
+
+# 配置 recommendation/.env（勿提交）：
+# SUPABASE_URL=...
+# SUPABASE_SERVICE_ROLE_KEY=...
+
+python main.py --user-id <UUID> --top-n 5   # 为指定用户生成 Top-N 推荐
+```
+
+- 算法：Item-Based Collaborative Filtering（余弦相似度 + 加权平均预测）
+- 冷启动保护：用户不存在 / 无评分 / 无候选书时返回对应状态而非报错
+- 测试脚本：`python test_data.py` 幂等创建 8 个测试用户与 40 条设计评分；`python cleanup_test_data.py` 一键清理（仅删除 `@test.example` 后缀的测试账号）
