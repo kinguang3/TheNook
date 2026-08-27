@@ -57,4 +57,4 @@ __pycache__/
 venv/
 
 # Cover source images (uploaded to Supabase Storage)
-cover/*.png
+cover/
