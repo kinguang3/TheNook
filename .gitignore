@@ -55,3 +55,6 @@ dev.log
 __pycache__/
 *.pyc
 venv/
+
+# Cover source images (uploaded to Supabase Storage)
+cover/*.png
