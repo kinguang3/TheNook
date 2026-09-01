@@ -42,7 +42,7 @@ Next.js 16 · React 19 · TypeScript · Supabase
 
 | 表/视图 | 用途 | 可见性 |
 | --- | --- | --- |
-| `authors` / `series` / `books` | 目录数据（含 5 位作者、4 个系列、8 本书的种子数据） | 公开可读 |
+| `authors` / `series` / `books` | 目录数据（含 6 位作者、4 个系列、10 本书的种子数据） | 公开可读 |
 | `favorites` / `ratings` / `notes` / `shelf` | 用户个人数据 | 仅属主（RLS） |
 | `profiles` | 评论者昵称，注册时由触发器自动建档 | 公开可读 |
 | `reviews` | 公开书评，绑定 book_id + user_id | 公开可读，仅本人可写 |
