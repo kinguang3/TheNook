@@ -14,7 +14,7 @@ const MAX_WIDTH = 440;
 const DEFAULT_WIDTH = 240;
 
 const NAV_ITEMS: {
-  id: "timeline" | "search" | "shelf" | "signup" | "login";
+  id: "timeline" | "search" | "shelf" | "signup";
   label: string;
   href: string;
   requiresGuest?: boolean;
@@ -23,7 +23,6 @@ const NAV_ITEMS: {
   { id: "search", label: "搜索", href: "/search" },
   { id: "shelf", label: "书架", href: "/shelf" },
   { id: "signup", label: "注册", href: "/signup", requiresGuest: true },
-  { id: "login", label: "登入", href: "/login", requiresGuest: true },
 ];
 
 export function Sidebar({ userEmail }: SidebarProps) {
@@ -70,7 +69,6 @@ export function Sidebar({ userEmail }: SidebarProps) {
     if (id === "timeline") return pathname === "/";
     if (id === "search") return pathname.startsWith("/search");
     if (id === "shelf") return pathname.startsWith("/shelf");
-    if (id === "login") return pathname.startsWith("/login");
     if (id === "signup") return pathname.startsWith("/signup");
     return false;
   };
