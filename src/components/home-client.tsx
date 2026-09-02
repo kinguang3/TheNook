@@ -192,7 +192,7 @@ export default function HomeClient({
           <Typewriter
             texts={['每一本都是一场未完成的对话，等待被重新打开。', '沿着时间线，重走那些让人失眠的推理小说。']}
             speed={80}
-            deleteSpeed={30}
+            deleteSpeed={50}
             holdMs={2200}
           />
           <p className="casebook-subtitle">
