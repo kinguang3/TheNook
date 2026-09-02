@@ -188,16 +188,38 @@ export default function HomeClient({
   return (
     <>
       <header className="casebook-header">
-        <div className="casebook-header-text">
-          <Typewriter
-            texts={['每一本都是一场未完成的对话，等待被重新打开。', '沿着时间线，重走那些让人失眠的推理小说。']}
-            speed={80}
-            deleteSpeed={30}
-            holdMs={2200}
-          />
-          <p className="casebook-subtitle">
-            收录本格、社会派、硬核与经典欧美推理。向下滚动，时间线会持续延伸；每一个节点都记录一部值得反复回味的谜题、动机与余韵。
-          </p>
+        <div className="casebook-header-inner">
+          <div className="casebook-header-text">
+            <Typewriter
+              texts={['每一本都是一场未完成的对话，等待被重新打开。', '沿着时间线，重走那些让人失眠的推理小说。']}
+              speed={80}
+              deleteSpeed={30}
+              holdMs={2200}
+            />
+            <p className="casebook-subtitle">
+              收录本格、社会派、硬核与经典欧美推理。向下滚动，时间线会持续延伸；每一个节点都记录一部值得反复回味的谜题、动机与余韵。
+            </p>
+          </div>
+
+          <div className="casebook-panel">
+            <p className="panel-eyebrow">CASEBOOK</p>
+            <div className="panel-row">
+              <span>BOOKS</span>
+              <span>{initialBooks.length}</span>
+            </div>
+            <div className="panel-row">
+              <span>AUTHORS</span>
+              <span>{new Set(initialBooks.map(b => b.authorName)).size}</span>
+            </div>
+            <div className="panel-row">
+              <span>REVIEWS</span>
+              <span>{timelineReviews.length}</span>
+            </div>
+            <div className="panel-row">
+              <span>UPDATED</span>
+              <span>2026</span>
+            </div>
+          </div>
         </div>
 
         <div className="casebook-controls">

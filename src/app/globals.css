@@ -262,6 +262,13 @@ body.sidebar-resizing {
   border-bottom: 1px solid var(--line);
 }
 
+.casebook-header-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(200px, 0.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
 .casebook-header-text {
   display: grid;
   gap: 12px;
@@ -278,6 +285,41 @@ body.sidebar-resizing {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+/* ========== Casebook Panel ========== */
+
+.casebook-panel {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+}
+
+.panel-eyebrow {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+}
+
+.panel-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.panel-row:last-child {
+  border-bottom: 0;
+}
+
+.panel-row span:first-child {
+  color: var(--text-muted);
 }
 
 /* ========== Filter System ========== */
@@ -1365,6 +1407,10 @@ body.sidebar-resizing {
 
   .hero,
   .topic-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .casebook-header-inner {
     grid-template-columns: 1fr;
   }
 
