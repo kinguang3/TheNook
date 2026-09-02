@@ -15,8 +15,8 @@ type TypeFilter = 'all' | 'detective' | 'standalone' | 'locked-room' | 'serial'
 
 const regionOptions: { value: RegionFilter; label: string; field: 'REGION' }[] = [
   { value: 'all', label: '全部地区', field: 'REGION' },
-  { value: 'uk', label: '英国', field: 'REGION' },
-  { value: 'jp', label: '日本', field: 'REGION' },
+  { value: 'uk', label: '欧美', field: 'REGION' },
+  { value: 'jp', label: '日系', field: 'REGION' },
 ]
 
 const eraOptions: { value: EraFilter; label: string; field: 'ERA' }[] = [
@@ -29,9 +29,9 @@ const eraOptions: { value: EraFilter; label: string; field: 'ERA' }[] = [
 
 const typeOptions: { value: TypeFilter; label: string; field: 'TYPE' }[] = [
   { value: 'all', label: '全部类型', field: 'TYPE' },
-  { value: 'detective', label: '侦探系列', field: 'TYPE' },
+  { value: 'detective', label: '本格推理', field: 'TYPE' },
   { value: 'standalone', label: '独立作品', field: 'TYPE' },
-  { value: 'locked-room', label: '密室/孤岛', field: 'TYPE' },
+  { value: 'locked-room', label: '孤岛/不可能犯罪', field: 'TYPE' },
   { value: 'serial', label: '连环杀手', field: 'TYPE' },
 ]
 
@@ -73,8 +73,8 @@ export default function HomeClient({
     const filtered = initialBooks.filter((book) => {
       // Region filter
       if (regionFilter !== 'all') {
-        const isUK = book.tags.some((t) => ['伦敦', '英国'].includes(t))
-        const isJP = book.tags.includes('日本')
+        const isUK = book.tags.includes('欧美')
+        const isJP = book.tags.includes('日系')
         if (regionFilter === 'uk' && !isUK) return false
         if (regionFilter === 'jp' && !isJP) return false
       }
@@ -91,13 +91,13 @@ export default function HomeClient({
       // Type filter
       if (typeFilter !== 'all') {
         if (typeFilter === 'detective') {
-          if (!book.id.startsWith('cormoran')) return false
+          if (!book.tags.includes('本格推理') && !book.tags.includes('本格')) return false
         }
         if (typeFilter === 'standalone') {
           if (book.id !== 'our-houses' && book.id !== 'magpie-murders') return false
         }
         if (typeFilter === 'locked-room') {
-          if (!book.tags.some((t) => ['密室', '孤岛', '暴风雪山庄'].includes(t))) return false
+          if (!book.tags.some((t) => ['孤岛悬疑', '不可能犯罪'].includes(t))) return false
         }
         if (typeFilter === 'serial') {
           if (!book.tags.includes('连环杀手')) return false
