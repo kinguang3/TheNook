@@ -1,20 +1,19 @@
 :root {
   color-scheme: dark;
-  --bg: #101112;
-  --panel: rgba(15, 16, 18, 0.86);
-  --panel-strong: rgba(22, 24, 27, 0.94);
-  --line: rgba(244, 244, 245, 0.14);
-  --line-strong: rgba(244, 244, 245, 0.26);
-  --text: #f5f5f5;
-  --text-soft: #c0c4cc;
-  --text-muted: #8d939e;
-  --accent: #d7dadf;
-  --star: #f2cf78;
-  --danger: #ff8f8f;
+  --bg: #0f1113;
+  --panel: rgba(15, 16, 18, 0.92);
+  --panel-strong: rgba(20, 22, 25, 0.96);
+  --line: rgba(244, 244, 245, 0.10);
+  --line-strong: rgba(244, 244, 245, 0.18);
+  --text: #e8e8ea;
+  --text-soft: #a8abb2;
+  --text-muted: #6b7080;
+  --accent: #c8cad0;
+  --star: #d4b86a;
+  --danger: #c97070;
   --max-width: 1100px;
-  --timeline-x: clamp(28px, 10vw, 120px);
-  --transition: 220ms ease;
-  --shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+  --case-width: clamp(28px, 10vw, 120px);
+  --transition: 180ms ease;
 }
 
 * {
@@ -31,8 +30,7 @@ body {
   min-height: 100vh;
   font-family: var(--font-plex), "IBM Plex Mono", "SFMono-Regular", Consolas,
     "Liberation Mono", monospace;
-  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 35%),
-    linear-gradient(180deg, #111214 0%, #0d0e10 100%);
+  background: #0f1113;
   color: var(--text);
 }
 
@@ -209,16 +207,6 @@ body.sidebar-resizing {
   letter-spacing: 0.08em;
 }
 
-.wordmark {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 8px;
-  font-size: clamp(1.1rem, 2vw, 1.55rem);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
 .tag-button,
 .topic-link,
 .favorite-button,
@@ -263,6 +251,356 @@ body.sidebar-resizing {
   padding: 24px;
   margin-bottom: 24px;
 }
+
+/* ========== Casebook Header ========== */
+
+.casebook-header {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.casebook-header-text {
+  display: grid;
+  gap: 12px;
+}
+
+.casebook-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.casebook-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ========== Filter System ========== */
+
+.casebook-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.filter-options {
+  display: flex;
+  gap: 4px;
+}
+
+.filter-btn {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.filter-btn:hover {
+  color: var(--text-soft);
+  border-color: var(--line-strong);
+}
+
+.filter-btn.active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(200, 202, 208, 0.08);
+}
+
+.clear-filters-btn {
+  padding: 5px 10px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.clear-filters-btn:hover {
+  color: var(--text-soft);
+  border-color: var(--line-strong);
+}
+
+/* ========== Meta Row ========== */
+
+.casebook-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.meta-item {
+  white-space: nowrap;
+}
+
+.meta-divider {
+  opacity: 0.4;
+}
+
+.sort-btn {
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sort-btn:hover {
+  color: var(--text-soft);
+}
+
+.sort-btn.active {
+  color: var(--text);
+  border-color: var(--line);
+}
+
+/* ========== Timeline Layout ========== */
+
+.casebook-timeline {
+  display: grid;
+  gap: 32px;
+}
+
+.year-group {
+  display: grid;
+  gap: 16px;
+}
+
+.year-marker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.year-number {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.year-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.year-books {
+  display: grid;
+  gap: 12px;
+}
+
+/* ========== Casebook Card ========== */
+
+.casebook-card {
+  display: grid;
+  grid-template-columns: 72px 120px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  transition: border-color var(--transition);
+}
+
+.casebook-card:hover {
+  border-color: var(--line-strong);
+}
+
+/* Case Number */
+
+.card-case-number {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.case-label {
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.case-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cover */
+
+.card-cover {
+  position: relative;
+  width: 120px;
+  height: 160px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.card-cover a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-mark {
+  font-size: 1.5rem;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+/* Cover tones */
+.cover-slate { background: linear-gradient(180deg, #3a4048, #1a1e22); }
+.cover-ember { background: linear-gradient(180deg, #5a3a38, #1a0f12); }
+.cover-graphite { background: linear-gradient(180deg, #3a3c42, #121416); }
+.cover-violet { background: linear-gradient(180deg, #463862, #12101e); }
+.cover-forest { background: linear-gradient(180deg, #3a4840, #0e1612); }
+.cover-burgundy { background: linear-gradient(180deg, #4a3238, #160c10); }
+.cover-ocean { background: linear-gradient(180deg, #2a3c4a, #0c1418); }
+.cover-steel { background: linear-gradient(180deg, #3a4450, #101418); }
+
+/* Content */
+
+.card-content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card-head {
+  display: grid;
+  gap: 4px;
+}
+
+.card-title-link {
+  text-decoration: none;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.card-title-link:hover .card-title {
+  color: var(--accent);
+}
+
+.card-series {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+
+.card-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.meta-dot {
+  opacity: 0.4;
+}
+
+.card-blurb {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-chip {
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-count {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* ========== Hero (simplified) ========== */
 
 .hero,
 .topic-hero {
@@ -490,24 +828,6 @@ body.sidebar-resizing {
   object-fit: cover;
 }
 
-.cover-mark {
-  position: absolute;
-  left: 12px;
-  bottom: 10px;
-  z-index: 1;
-  font-size: 1.35rem;
-  font-weight: 700;
-}
-
-.cover-slate { background: linear-gradient(180deg, #58606a, #2a3036); }
-.cover-ember { background: linear-gradient(180deg, #9f5a58, #311d22); }
-.cover-graphite { background: linear-gradient(180deg, #63666f, #191c20); }
-.cover-violet { background: linear-gradient(180deg, #7666a3, #221d3a); }
-.cover-forest { background: linear-gradient(180deg, #5b7266, #1a2721); }
-.cover-burgundy { background: linear-gradient(180deg, #87525f, #311720); }
-.cover-ocean { background: linear-gradient(180deg, #4a6b82, #15232c); }
-.cover-steel { background: linear-gradient(180deg, #708090, #202732); }
-
 .card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -522,11 +842,6 @@ body.sidebar-resizing {
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
-}
-
-.card-title {
-  margin: 0;
-  font-size: clamp(1.1rem, 2vw, 1.45rem);
 }
 
 .favorite-button {
@@ -606,7 +921,7 @@ body.sidebar-resizing {
 }
 
 .star-button.active {
-  color: rgba(242, 207, 120, 0.55);
+  color: rgba(212, 184, 106, 0.55);
 }
 
 .star-button:hover,
@@ -663,7 +978,7 @@ body.sidebar-resizing {
 }
 
 .user-rating-hint.saved {
-  color: rgba(242, 207, 120, 0.75);
+  color: rgba(212, 184, 106, 0.75);
 }
 
 .user-rating-hint.error {
@@ -769,7 +1084,7 @@ body.sidebar-resizing {
 /* 从时间线点击跳转时，目标评论短暂高亮 */
 .review-card:target {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 0 24px rgba(215, 218, 223, 0.12);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 24px rgba(200, 202, 208, 0.12);
 }
 
 .review-meta-row {
@@ -1004,6 +1319,8 @@ body.sidebar-resizing {
   border-bottom: 1px solid var(--line-strong);
 }
 
+/* ========== Responsive ========== */
+
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -1108,7 +1425,60 @@ body.sidebar-resizing {
   }
 }
 
-/* ---------- 打字机效果 ---------- */
+/* ========== Mobile Card Layout ========== */
+
+@media (max-width: 640px) {
+  .casebook-card {
+    grid-template-columns: 56px 80px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .case-value {
+    font-size: 1rem;
+  }
+
+  .card-cover {
+    width: 80px;
+    height: 107px;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+  }
+
+  .card-blurb {
+    display: none;
+  }
+
+  .filter-group {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .filter-label {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .casebook-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card-case-number {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .card-cover {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+/* ---------- 打字机效果（保留用于其他页面） ---------- */
 
 .typewriter-hero {
   margin: 0;
@@ -1266,8 +1636,8 @@ body.sidebar-resizing {
 
 .shelf-remove:hover:not(:disabled) {
   color: var(--danger);
-  border-color: rgba(255, 143, 143, 0.4);
-  background: rgba(255, 143, 143, 0.06);
+  border-color: rgba(201, 112, 112, 0.4);
+  background: rgba(201, 112, 112, 0.06);
 }
 
 .shelf-remove:disabled {
@@ -1395,6 +1765,7 @@ body.sidebar-resizing {
     transition-duration: 0.01ms !important;
   }
 }
+
 /* ---------- Global Search ---------- */
 
 .search-hero h1 {
@@ -1486,7 +1857,7 @@ body.sidebar-resizing {
   }
 }
 
-/* ������תʱ���ߺ�Ķ��ݸ��� */
+/* 跳转时高亮 */
 .timeline-item.timeline-focus .card-layout {
   animation: timeline-focus-pulse 2.4s ease;
 }
@@ -1499,6 +1870,6 @@ body.sidebar-resizing {
 
   15%,
   60% {
-    box-shadow: 0 0 0 2px rgba(242, 207, 120, 0.55);
+    box-shadow: 0 0 0 2px rgba(212, 184, 106, 0.55);
   }
 }

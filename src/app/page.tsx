@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   getAuthors,
-  getAllTags,
   getBooks,
   getRatingStats,
   getRecentReviews,
@@ -9,15 +8,9 @@ import {
   getUserData,
 } from "@/lib/data";
 import { emptyUserData } from "@/lib/types";
-import { HomeClient } from "@/components/home-client";
-import { FootprintsLayer } from "@/components/footprints-layer";
+import HomeClient from "@/components/home-client";
 
-type HomePageProps = {
-  searchParams: Promise<{ focus?: string }>;
-};
-
-export default async function HomePage({ searchParams }: HomePageProps) {
-  const { focus } = await searchParams;
+export default async function HomePage() {
   const supabase = await createClient();
 
   const [authors, seriesList] = await Promise.all([
@@ -30,28 +23,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [userData, recentReviews, ratingStats] = await Promise.all([
+  const [userData, timelineReviews, ratingStats] = await Promise.all([
     user ? getUserData(supabase, user.id) : Promise.resolve(emptyUserData),
     getRecentReviews(supabase),
     getRatingStats(supabase),
   ]);
 
-  const ratingAverages = Object.fromEntries(
-    ratingStats.map((stat) => [stat.bookId, stat.avgValue]),
-  );
-
   return (
-    <>
-      <FootprintsLayer />
-      <HomeClient
-        books={books}
-        allTags={getAllTags(books)}
-        initialUserData={userData}
-        isAuthed={Boolean(user)}
-        recentReviews={recentReviews}
-        focusBookId={focus ?? null}
-        ratingAverages={ratingAverages}
-      />
-    </>
+    <HomeClient
+      initialBooks={books}
+      userData={userData}
+      ratingStats={ratingStats}
+      timelineReviews={timelineReviews}
+      isLoggedIn={Boolean(user)}
+    />
   );
 }

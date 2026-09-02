@@ -18,6 +18,7 @@ const NAV_ITEMS: {
   label: string;
   href: string;
   requiresGuest?: boolean;
+  requiresAuth?: boolean;
 }[] = [
   { id: "timeline", label: "时间线", href: "/#timeline" },
   { id: "search", label: "搜索", href: "/search" },
