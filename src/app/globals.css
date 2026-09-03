@@ -30,7 +30,8 @@ body {
   min-height: 100vh;
   font-family: var(--font-plex), "IBM Plex Mono", "SFMono-Regular", Consolas,
     "Liberation Mono", monospace;
-  background: #0f1113;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 35%),
+    linear-gradient(180deg, #111214 0%, #0d0e10 100%);
   color: var(--text);
 }
 
