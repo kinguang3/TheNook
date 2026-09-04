@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { login, signup, type AuthState } from "@/app/actions/auth";
+import { login, signup, resetPassword, type AuthState } from "@/app/actions/auth";
 
 const emptyState: AuthState = {};
 
@@ -48,6 +48,10 @@ export function LoginForm() {
       <button type="submit" className="auth-submit" disabled={pending}>
         {pending ? "登录中..." : "登录"}
       </button>
+
+      <p className="auth-forgot">
+        <Link href="/forgot-password">忘记密码？</Link>
+      </p>
 
       <p className="auth-switch">
         还没有账号？<Link href="/signup">去注册</Link>
@@ -103,6 +107,44 @@ export function SignupForm() {
 
       <p className="auth-switch">
         已有账号？<Link href="/login">直接登录</Link>
+      </p>
+    </form>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [state, formAction, pending] = useActionState(resetPassword, emptyState);
+
+  return (
+    <form action={formAction} className="auth-card">
+      <p className="eyebrow">[+] Reset Password</p>
+      <h1>忘记密码</h1>
+
+      <div className="auth-field">
+        <label htmlFor="forgot-email">邮箱</label>
+        <input
+          id="forgot-email"
+          name="email"
+          type="email"
+          className="auth-input"
+          autoComplete="email"
+          required
+        />
+      </div>
+
+      {state?.error ? (
+        <p className="auth-error" role="alert">
+          {state.error}
+        </p>
+      ) : null}
+      {state?.message ? <p className="auth-message">{state.message}</p> : null}
+
+      <button type="submit" className="auth-submit" disabled={pending}>
+        {pending ? "发送中..." : "发送重置链接"}
+      </button>
+
+      <p className="auth-switch">
+        <Link href="/login">返回登录</Link>
       </p>
     </form>
   );

@@ -64,3 +64,25 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export async function resetPassword(
+  _previousState: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { error: "请输入邮箱地址。" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { message: "重置链接已发送到您的邮箱，请查收。" };
+}

@@ -1320,6 +1320,21 @@ body.sidebar-resizing {
   border-bottom: 1px solid var(--line-strong);
 }
 
+.auth-forgot {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.auth-forgot a {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  transition: color var(--transition);
+}
+
+.auth-forgot a:hover {
+  color: var(--text-soft);
+}
+
 /* ========== Responsive ========== */
 
 @media (max-width: 900px) {
