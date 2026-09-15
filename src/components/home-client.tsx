@@ -135,12 +135,11 @@ export default function HomeClient({
     return groups
   }, [filteredBooks, sortBy])
 
-  // Assign CASE numbers based on year order
+  // Use cover_mark as CASE number
   const caseNumbers = useMemo(() => {
     const map = new Map<string, number>()
-    const sorted = [...initialBooks].sort((a, b) => a.year - b.year)
-    sorted.forEach((book, i) => {
-      map.set(book.id, i + 1)
+    initialBooks.forEach(book => {
+      map.set(book.id, parseInt(book.coverMark || '000', 10))
     })
     return map
   }, [initialBooks])
