@@ -14,7 +14,7 @@ Next.js 16 · React 19 · TypeScript · Supabase
 
 ## 功能特色
 
-- **案件档案时间线**：作品按出版年份纵向展开，每本书分配 CASE 001-010 编号；打字机效果循环播放"每一本都是一场未完成的对话，等待被重新打开。"与"沿着时间线，重走那些让人失眠的推理小说。"
+- **案件档案时间线**：作品按出版年份纵向展开，每本书分配与封面一致的 CASE 001-013 编号；打字机效果循环播放"每一本都是一场未完成的对话，等待被重新打开。"与"沿着时间线，重走那些让人失眠的推理小说。"
 - **三维筛选系统**：按地区（欧美/日系）、年代（1980s-2020s）、类型（本格推理/孤岛/连环杀手等）筛选书目
 - **全局搜索**：单一输入框同时检索作者、书籍、时间线节点，URL 同步（`/search?q=`）可分享
 - **公开书评**：每本书拥有独立书评页（`/books/<bookId>/reviews`），登录后可发表、编辑、删除自己的评论
@@ -42,7 +42,7 @@ Next.js 16 · React 19 · TypeScript · Supabase
 
 | 表/视图 | 用途 | 可见性 |
 | --- | --- | --- |
-| `authors` / `series` / `books` | 目录数据（含 5 位作者、4 个系列、10 本书的种子数据） | 公开可读 |
+| `authors` / `series` / `books` | 目录数据（含 7 位作者、4 个系列、13 本书） | 公开可读 |
 | `favorites` / `ratings` / `notes` / `shelf` | 用户个人数据 | 仅属主（RLS） |
 | `profiles` | 评论者昵称，注册时由触发器自动建档 | 公开可读 |
 | `reviews` | 公开书评，绑定 book_id + user_id | 公开可读，仅本人可写 |
@@ -60,11 +60,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-### 4. 配置封面存储（可选）
+### 4. 配置封面存储
 
 1. Supabase 控制台 → Storage → New bucket，名称 `covers`，勾选 **Public bucket**
-2. 将封面 URL 写入 `books.cover_url`
-3. 无封面时页面自动回退为色块 + 编号样式
+2. 上传封面后，将公开 URL 写入 `books.cover_url`，CASE 编号写入 `books.cover_mark`
+3. 时间线卡片的 CASE 序号直接取自 `cover_mark`，与封面印刷编号保持一致
+4. 无封面时页面自动回退为色块 + 编号样式
+
+> 本仓库的 `cover/` 目录存放全部封面原图与 `manifest.json` 映射（该目录已被 gitignore，不随仓库分发）。
 
 ### 5. 启动
 
@@ -111,6 +114,7 @@ recommendation/                         # 推荐引擎（Python，离线运行�
 - 本项目使用 Next.js 16，`middleware` 已更名为 `src/proxy.ts`
 - 改动类型或页面后，先运行 `npx next typegen` 再 `npx tsc --noEmit` 做类型检查
 - 书评权限模型：所有人可读，登录用户可发表，仅作者本人可修改/删除
+- 时间线 CASE 编号来自 `books.cover_mark`，新增书籍时需同步更新该字段与封面编号
 - `rating_stats` 是 security definer 视图，不支持 RLS；公开读取通过 `grant select to anon, authenticated` 授权
 - 搜索页面需要登录，未登录访问会自动重定向到 `/login`
 
