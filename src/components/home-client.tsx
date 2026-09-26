@@ -375,11 +375,6 @@ const CasebookCard = forwardRef<HTMLDivElement, CasebookCardProps>(
         ref={ref}
         className="casebook-card"
       >
-        <div className="card-case-number">
-          <span className="case-label">CASE</span>
-          <span className="case-value">{String(caseNum).padStart(3, '0')}</span>
-        </div>
-
         <div className="card-cover">
           <Link href={`/books/${book.id}/reviews`}>
             {book.coverUrl ? (
@@ -396,6 +391,10 @@ const CasebookCard = forwardRef<HTMLDivElement, CasebookCardProps>(
               </div>
             )}
           </Link>
+          <div className="card-case-badge">
+            <span className="case-label">CASE</span>
+            <span className="case-value">{String(caseNum).padStart(3, '0')}</span>
+          </div>
         </div>
 
         <div className="card-content">

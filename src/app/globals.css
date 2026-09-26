@@ -425,51 +425,28 @@ body.sidebar-resizing {
 
 .casebook-card {
   display: grid;
-  grid-template-columns: 72px 120px minmax(0, 1fr);
-  gap: 16px;
-  padding: 16px;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 20px;
+  padding: 20px;
   border: 1px solid var(--line);
   background: var(--panel);
   transition: border-color var(--transition);
+  position: relative;
 }
 
 .casebook-card:hover {
   border-color: var(--line-strong);
 }
 
-/* Case Number */
-
-.card-case-number {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-.case-label {
-  color: var(--text-muted);
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.case-value {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-  font-variant-numeric: tabular-nums;
-}
-
 /* Cover */
 
 .card-cover {
   position: relative;
-  width: 120px;
-  height: 160px;
+  width: 100%;
+  aspect-ratio: 3 / 4;
   border: 1px solid var(--line);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .card-cover a {
@@ -495,9 +472,41 @@ body.sidebar-resizing {
 }
 
 .cover-mark {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
   opacity: 0.6;
+}
+
+/* CASE badge on cover */
+
+.card-case-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--line-strong);
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+}
+
+.case-label {
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.case-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Cover tones */
@@ -514,8 +523,9 @@ body.sidebar-resizing {
 
 .card-content {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
+  padding-top: 4px;
 }
 
 .card-head {
@@ -529,7 +539,7 @@ body.sidebar-resizing {
 
 .card-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   font-weight: 600;
   line-height: 1.3;
   color: var(--text);
@@ -541,7 +551,7 @@ body.sidebar-resizing {
 
 .card-series {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   letter-spacing: 0.03em;
 }
 
@@ -1445,22 +1455,17 @@ body.sidebar-resizing {
 
 @media (max-width: 640px) {
   .casebook-card {
-    grid-template-columns: 56px 80px minmax(0, 1fr);
-    gap: 10px;
-    padding: 12px;
-  }
-
-  .case-value {
-    font-size: 1rem;
+    grid-template-columns: 100px 1fr;
+    gap: 14px;
+    padding: 14px;
   }
 
   .card-cover {
-    width: 80px;
-    height: 107px;
+    aspect-ratio: 3 / 4;
   }
 
   .card-title {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
   }
 
   .card-blurb {
@@ -1483,14 +1488,14 @@ body.sidebar-resizing {
     gap: 12px;
   }
 
-  .card-case-number {
-    flex-direction: row;
-    gap: 8px;
-  }
-
   .card-cover {
     width: 100%;
-    height: 200px;
+    aspect-ratio: 16 / 9;
+  }
+
+  .card-case-badge {
+    top: 8px;
+    right: 8px;
   }
 }
 
