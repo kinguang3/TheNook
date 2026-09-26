@@ -58,3 +58,6 @@ venv/
 
 # Cover source images (uploaded to Supabase Storage)
 cover/
+
+# Agent skills (installed via npx skills, not part of project source)
+.agents/
