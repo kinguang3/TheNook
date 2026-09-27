@@ -61,3 +61,6 @@ cover/
 
 # Agent skills (installed via npx skills, not part of project source)
 .agents/
+
+# Skills CLI lock file
+skills-lock.json
