@@ -8,7 +8,7 @@
   --text: #e8e8ea;
   --text-soft: #a8abb2;
   --text-muted: #6b7080;
-  --accent: #c8a84e;
+  --accent: #c8cad0;
   --star: #d4b86a;
   --danger: #c97070;
   --max-width: 1100px;
@@ -275,7 +275,7 @@ body.sidebar-resizing {
   left: 0;
   width: 60px;
   height: 2px;
-  background: var(--accent);
+  background: var(--line-strong);
 }
 
 .casebook-header-text {
@@ -344,9 +344,9 @@ body.sidebar-resizing {
 }
 
 .filter-btn.active {
-  color: var(--accent);
+  color: var(--text);
   border-color: var(--accent);
-  background: rgba(200, 168, 78, 0.1);
+  background: rgba(200, 202, 208, 0.08);
 }
 
 .clear-filters-btn {
@@ -397,8 +397,8 @@ body.sidebar-resizing {
 }
 
 .sort-btn.active {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--text);
+  border-color: var(--line);
 }
 
 /* ========== Timeline Layout ========== */
@@ -424,7 +424,7 @@ body.sidebar-resizing {
 .year-number {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text);
   letter-spacing: 0.05em;
   white-space: nowrap;
   font-family: var(--font-serif), "Noto Serif SC", serif;
@@ -509,7 +509,7 @@ body.sidebar-resizing {
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--line-strong);
   padding: 4px 10px;
   display: flex;
   align-items: center;
@@ -518,7 +518,7 @@ body.sidebar-resizing {
 }
 
 .case-label {
-  color: var(--accent);
+  color: var(--text-muted);
   font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -527,7 +527,7 @@ body.sidebar-resizing {
 .case-value {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text);
   letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
 }
@@ -570,7 +570,7 @@ body.sidebar-resizing {
 }
 
 .card-title-link:hover .card-title {
-  color: var(--accent);
+  color: var(--text-soft);
 }
 
 .card-series {
