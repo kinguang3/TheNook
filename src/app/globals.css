@@ -8,7 +8,7 @@
   --text: #e8e8ea;
   --text-soft: #a8abb2;
   --text-muted: #6b7080;
-  --accent: #c8cad0;
+  --accent: #c8a84e;
   --star: #d4b86a;
   --danger: #c97070;
   --max-width: 1100px;
@@ -27,11 +27,16 @@ body {
   position: relative;
   margin: 0;
   min-height: 100vh;
-  font-family: var(--font-plex), "IBM Plex Mono", "SFMono-Regular", Consolas,
-    "Liberation Mono", monospace;
+  font-family: var(--font-serif), "Noto Serif SC", "Songti SC", "SimSun", serif;
   background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 35%),
     linear-gradient(180deg, #111214 0%, #0d0e10 100%);
   color: var(--text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif), "Noto Serif SC", "Songti SC", serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 a {
@@ -256,10 +261,21 @@ body.sidebar-resizing {
 
 .casebook-header {
   display: grid;
-  gap: 20px;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  gap: 24px;
+  margin-bottom: 40px;
+  padding-bottom: 32px;
   border-bottom: 1px solid var(--line);
+  position: relative;
+}
+
+.casebook-header::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: var(--accent);
 }
 
 .casebook-header-text {
@@ -269,15 +285,19 @@ body.sidebar-resizing {
 
 .casebook-title {
   margin: 0;
-  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  color: var(--text);
 }
 
 .casebook-subtitle {
   margin: 0;
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  max-width: 60ch;
 }
 
 /* ========== Filter System ========== */
@@ -324,9 +344,9 @@ body.sidebar-resizing {
 }
 
 .filter-btn.active {
-  color: var(--text);
+  color: var(--accent);
   border-color: var(--accent);
-  background: rgba(200, 202, 208, 0.08);
+  background: rgba(200, 168, 78, 0.1);
 }
 
 .clear-filters-btn {
@@ -377,8 +397,8 @@ body.sidebar-resizing {
 }
 
 .sort-btn.active {
-  color: var(--text);
-  border-color: var(--line);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ========== Timeline Layout ========== */
@@ -403,10 +423,11 @@ body.sidebar-resizing {
 
 .year-number {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: var(--accent);
   letter-spacing: 0.05em;
   white-space: nowrap;
+  font-family: var(--font-serif), "Noto Serif SC", serif;
 }
 
 .year-line {
@@ -424,17 +445,19 @@ body.sidebar-resizing {
 
 .casebook-card {
   display: grid;
-  grid-template-columns: 140px minmax(0, 1fr);
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px;
   border: 1px solid var(--line);
   background: var(--panel);
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
   position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .casebook-card:hover {
   border-color: var(--line-strong);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Cover */
@@ -446,6 +469,7 @@ body.sidebar-resizing {
   border: 1px solid var(--line);
   overflow: hidden;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .card-cover a {
@@ -482,10 +506,10 @@ body.sidebar-resizing {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid var(--line-strong);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--accent);
   padding: 4px 10px;
   display: flex;
   align-items: center;
@@ -494,7 +518,7 @@ body.sidebar-resizing {
 }
 
 .case-label {
-  color: var(--text-muted);
+  color: var(--accent);
   font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -538,10 +562,11 @@ body.sidebar-resizing {
 
 .card-title {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
   color: var(--text);
+  font-family: var(--font-serif), "Noto Serif SC", serif;
 }
 
 .card-title-link:hover .card-title {

@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
+import { Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import { RainLayer } from "@/components/rain-layer";
 import { Sidebar } from "@/components/sidebar";
 
 const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex",
+  variable: "--font-mono",
   weight: ["400", "500", "700"],
+  subsets: ["latin"],
+});
+
+const serif = Noto_Serif_SC({
+  variable: "--font-serif",
+  weight: ["400", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -24,7 +31,7 @@ export default async function RootLayout(props: LayoutProps<"/">) {
   } = await supabase.auth.getUser();
 
   return (
-    <html lang="zh-CN" className={plexMono.variable}>
+    <html lang="zh-CN" className={`${plexMono.variable} ${serif.variable}`}>
       <body>
         <RainLayer />
         <div className="app-shell">
