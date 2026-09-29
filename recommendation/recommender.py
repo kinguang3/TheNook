@@ -51,6 +51,12 @@ def build_rating_matrix(
 
     # 补全无人评分的书（pivot_table 会丢弃全空列）
     if all_book_ids is not None:
+        valid = set(all_book_ids)
+        # 剔除孤儿评分：评分引用了已从 books 表删除的书
+        orphans = [c for c in matrix.columns if c not in valid]
+        if orphans:
+            print(f"Dropped {len(orphans)} orphan rating columns (book deleted): {orphans}")
+            matrix = matrix.drop(columns=orphans)
         for bid in all_book_ids:
             if bid not in matrix.columns:
                 matrix[bid] = np.nan
