@@ -6,6 +6,31 @@
 import pandas as pd
 from supabase import create_client
 
+PAGE_SIZE = 1000
+
+
+def _fetch_all(client, table: str, columns: str) -> list[dict]:
+    """分页拉取全量行，绕过 PostgREST 默认单页行数上限。
+
+    按实际返回条数推进 offset，直到某页返回 0 行为止，
+    避免服务端 max-rows 小于 PAGE_SIZE 时被静默截断。
+    """
+    rows: list[dict] = []
+    offset = 0
+    while True:
+        page = (
+            client.table(table)
+            .select(columns)
+            .range(offset, offset + PAGE_SIZE - 1)
+            .execute()
+        )
+        data = page.data or []
+        rows.extend(data)
+        if not data:
+            break
+        offset += len(data)
+    return rows
+
 
 def load_ratings(supabase_url: str, service_key: str) -> pd.DataFrame:
     """读取全部评分行。
@@ -14,10 +39,8 @@ def load_ratings(supabase_url: str, service_key: str) -> pd.DataFrame:
         DataFrame: user_id, book_id, value
     """
     client = create_client(supabase_url, service_key)
-    rows: list[dict] = []
     # select 只取必要字段，减少传输量
-    page = client.table("ratings").select("user_id, book_id, value").execute()
-    rows.extend(page.data)
+    rows = _fetch_all(client, "ratings", "user_id, book_id, value")
 
     df = pd.DataFrame(rows)
     if df.empty:
@@ -33,8 +56,8 @@ def load_books(supabase_url: str, service_key: str) -> pd.DataFrame:
         DataFrame: id, title, author_id
     """
     client = create_client(supabase_url, service_key)
-    page = client.table("books").select("id, title, author_id").execute()
-    df = pd.DataFrame(page.data)
+    rows = _fetch_all(client, "books", "id, title, author_id")
+    df = pd.DataFrame(rows)
     if df.empty:
         df = pd.DataFrame(columns=["id", "title", "author_id"])
     print(f"Loaded books: {len(df)}")
@@ -48,8 +71,8 @@ def load_authors(supabase_url: str, service_key: str) -> pd.DataFrame:
         DataFrame: id, name
     """
     client = create_client(supabase_url, service_key)
-    page = client.table("authors").select("id, name").execute()
-    df = pd.DataFrame(page.data)
+    rows = _fetch_all(client, "authors", "id, name")
+    df = pd.DataFrame(rows)
     if df.empty:
         df = pd.DataFrame(columns=["id", "name"])
     print(f"Loaded authors: {len(df)}")
