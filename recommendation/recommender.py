@@ -1,15 +1,19 @@
-"""Item-Based Collaborative Filtering 推荐算法。
+"""Item-Based Collaborative Filtering 推荐算法 (Adjusted Cosine)。
 
 算法流程:
   1. 构建 User × Item 评分矩阵 (pivot_table)
-  2. 计算 Item-Item Cosine Similarity
-  3. 对于指定用户，用相似度加权预测未评分书籍
-  4. 按预测分数降序返回 Top-N
+  2. 逐用户减去其评分均值 (mean-centering)，未评分维度记 0（= 用户平均水平，中性）
+  3. 计算 Item-Item 余弦相似度 (此时向量可含负值，相似度可为负)
+  4. 对于指定用户，用相似度加权预测未评分书籍:
+       pred(u, c) = mean(u) + Σ sim(c, i) * (r(u, i) - mean(u)) / Σ |sim(c, i)|
+  5. 按预测分数降序返回 Top-N
 
-NaN 处理说明:
-  pivot_table 中未评分的值为 NaN。在计算余弦相似度时将 NaN 填充为 0，
-  这意味着「未评分」等同于「评分为 0」。对于稀疏矩阵这是最简单直观的做法，
-  后续可以考虑只在共同评分的维度上计算相似度来提高精度。
+说明:
+  - mean-centering 消除用户评分尺度差异（苛刻/宽松用户），使相似度反映
+    「口味方向」而非「打分水平」；口味冲突的书会得到负相似度。
+  - 未评分不等同于 0 分：centering 后按用户均值代入，残差为 0（中性）。
+  - 分母取 |sim| 之和：负相似度（反相关）的残差会以负权重计入分子，
+    避免正负相似度在分母互相抵消。
 """
 
 from dataclasses import dataclass
@@ -65,12 +69,18 @@ def build_rating_matrix(
 
 
 def compute_item_similarity(matrix: pd.DataFrame) -> pd.DataFrame:
-    """计算 Item-Item 余弦相似度。
+    """计算 Item-Item Adjusted Cosine 相似度。
 
-    将 NaN 填充为 0 后计算。返回 DataFrame，行列都是 book_id。
+    逐用户减去其评分均值 (mean-centering) 后再计算余弦相似度：
+    - 未评分 (NaN) 在减均值后填 0，即残差为 0 = 用户平均水平（中性）。
+    - 向量因此可含负值，相似度范围 [-1, 1]，口味冲突的书为负相似度。
+    返回 DataFrame，行列都是 book_id。
     """
-    # 填充 NaN 为 0：未评分视为「评分为 0」
-    filled = matrix.fillna(0).values  # shape: (n_users, n_items)
+    # 逐用户减去均值（pandas mean 默认跳过 NaN）
+    means = matrix.mean(axis=1)
+    centered = matrix.sub(means, axis=0)
+    # NaN 残差填 0：未评分 = 用户平均水平，不携带口味信号
+    filled = centered.fillna(0).values  # shape: (n_users, n_items)
 
     # cosine_similarity 计算 item 之间的相似度，输入 shape (n_samples, n_features)
     # 这里每个 item 是一个 n_users 维的向量，所以转置后输入
@@ -122,23 +132,24 @@ def recommend(
         return {"status": "no_candidates", "recommendations": []}
 
     # --- 预测每本候选书的评分 ---
-    # 公式: pred(u, c) = Σ sim(c, i) * r(u, i) / Σ |sim(c, i)|
-    # 其中 i 是用户已评过的书
+    # 公式: pred(u, c) = mean(u) + Σ sim(c, i) * (r(u, i) - mean(u)) / Σ |sim(c, i)|
+    # 其中 i 是用户已评过的书；相似度可为负（反相关残差以负权重计入）
     scores: dict[str, float] = {}
     rated_values = user_ratings[rated_mask]  # Series: book_id -> rating
+    user_mean = rated_values.mean()
+    residuals = rated_values.values.astype(float) - user_mean
 
     for candidate in candidate_items:
         # 取 candidate 与每本已评书的相似度
         sims = item_sim.loc[candidate, rated_values.index].values  # np.array
-        ratings_arr = rated_values.values.astype(float)
 
-        # 分母：相似度绝对值之和（避免负相似度互相抵消）
+        # 分母：相似度绝对值之和（正负相似度不互相抵消）
         denom = np.abs(sims).sum()
         if denom == 0:
             continue  # 与所有已评书无相似度，跳过
 
-        numerator = (sims * ratings_arr).sum()
-        scores[candidate] = numerator / denom
+        numerator = (sims * residuals).sum()
+        scores[candidate] = user_mean + numerator / denom
 
     if not scores:
         return {"status": "insufficient_data", "recommendations": []}
