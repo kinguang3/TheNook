@@ -3,10 +3,13 @@
 所有读取使用 service_role_key 绕过 RLS，以获取全量评分数据。
 """
 
+import time
+
 import pandas as pd
 from supabase import create_client
 
 PAGE_SIZE = 1000
+MAX_RETRIES = 3
 
 
 def _fetch_all(client, table: str, columns: str) -> list[dict]:
@@ -14,16 +17,26 @@ def _fetch_all(client, table: str, columns: str) -> list[dict]:
 
     按实际返回条数推进 offset，直到某页返回 0 行为止，
     避免服务端 max-rows 小于 PAGE_SIZE 时被静默截断。
+    每页失败自动重试（网络瞬断常见）。
     """
     rows: list[dict] = []
     offset = 0
     while True:
-        page = (
-            client.table(table)
-            .select(columns)
-            .range(offset, offset + PAGE_SIZE - 1)
-            .execute()
-        )
+        for attempt in range(MAX_RETRIES):
+            try:
+                page = (
+                    client.table(table)
+                    .select(columns)
+                    .range(offset, offset + PAGE_SIZE - 1)
+                    .execute()
+                )
+                break
+            except Exception as e:  # noqa: BLE001
+                if attempt == MAX_RETRIES - 1:
+                    raise
+                wait = 2**attempt
+                print(f"  retry {attempt + 1}/{MAX_RETRIES} for {table}@{offset}: {e}")
+                time.sleep(wait)
         data = page.data or []
         rows.extend(data)
         if not data:

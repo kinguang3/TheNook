@@ -139,7 +139,8 @@ def recommend(
     user_mean = rated_values.mean()
     residuals = rated_values.values.astype(float) - user_mean
 
-    for candidate in candidate_items:
+    # sorted 迭代候选：候选来自 set，固定顺序保证跨进程结果一致
+    for candidate in sorted(candidate_items):
         # 取 candidate 与每本已评书的相似度
         sims = item_sim.loc[candidate, rated_values.index].values  # np.array
 
@@ -154,8 +155,8 @@ def recommend(
     if not scores:
         return {"status": "insufficient_data", "recommendations": []}
 
-    # 按分数降序取 Top-N
-    sorted_candidates = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_n]
+    # 按分数降序取 Top-N；并列时按 book_id 排序，保证确定性
+    sorted_candidates = sorted(scores.items(), key=lambda x: (-x[1], x[0]))[:top_n]
 
     # --- 组装结果：book_id -> title + author ---
     book_meta = books.set_index("id")[["title", "author_id"]].to_dict("index")
@@ -165,12 +166,14 @@ def recommend(
     for book_id, score in sorted_candidates:
         meta = book_meta.get(book_id, {})
         author_name = author_map.get(meta.get("author_id", ""), "未知")
+        # 预测值理论可越出评分值域 (加权残差公式)，展示时钳制到 [1, 5]
+        clamped = float(np.clip(score, 1.0, 5.0))
         results.append(
             RecResult(
                 book_id=book_id,
                 title=meta.get("title", book_id),
                 author=author_name,
-                score=round(score, 2),
+                score=round(clamped, 2),
             )
         )
 
