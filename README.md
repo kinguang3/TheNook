@@ -21,7 +21,7 @@ Next.js 16 · React 19 · TypeScript · Supabase
 - **书架**：收藏即上架，带真实封面（Supabase Storage）；阅读进度条自动推导未开始 / 阅读中 / 已读完
 - **个人数据**：收藏、评分（1–5 星）持久化到 Supabase，仅本人可见（RLS）
 - **读者综合评分**：聚合所有用户评分的平均分（`rating_stats` 视图），全站统一展示
-- **推荐算法（离线）**：Python 实现的 Item-Based 协同过滤，基于全体用户评分计算书籍相似度并生成 Top-N 推荐
+- **推荐算法（离线）**：Python 混合推荐 —— 共评余弦协同过滤（按共评人数置信收缩）+ 内容相似度（标签 / 作者 / 系列），自适应加权生成 Top-N 推荐
 - **用户系统**：注册 / 登录 / 忘记密码（Supabase Auth，邮箱验证），会话自动刷新
 
 ## 快速开始
@@ -42,7 +42,7 @@ Next.js 16 · React 19 · TypeScript · Supabase
 
 | 表/视图 | 用途 | 可见性 |
 | --- | --- | --- |
-| `authors` / `series` / `books` | 目录数据（含 7 位作者、4 个系列、13 本书） | 公开可读 |
+| `authors` / `series` / `books` | 目录数据（含 8 位作者、4 个系列、13 本书） | 公开可读 |
 | `favorites` / `ratings` / `notes` / `shelf` | 用户个人数据 | 仅属主（RLS） |
 | `profiles` | 评论者昵称，注册时由触发器自动建档 | 公开可读 |
 | `reviews` | 公开书评，绑定 book_id + user_id | 公开可读，仅本人可写 |
@@ -102,11 +102,13 @@ src/
 supabase/schema.sql                     # 全量建表 + RLS + 种子数据 + 聚合视图
 recommendation/                         # 推荐引擎（Python，离线运行）
 ├── config.py                           # 读取 .env 中的 Supabase 配置
-├── data_loader.py                      # 拉取 ratings / books / authors
-├── recommender.py                      # Item-Based 协同过滤核心算法
+├── data_loader.py                      # 分页拉取 ratings / books / authors（带网络重试）
+├── recommender.py                      # 混合推荐核心算法（CF 收缩 + 内容相似）
 ├── main.py                             # 命令行入口（--user-id --top-n）
 ├── test_data.py                        # 幂等创建测试用户与评分
-└── cleanup_test_data.py                # 清理测试数据
+├── cleanup_test_data.py                # 清理测试数据
+├── verify_algo.py                      # 算法回归验证（含边界场景）
+└── stress_test.py                      # 随机压力测试（12 项检查）
 ```
 
 ## 开发提示
@@ -135,6 +137,7 @@ pip install -r requirements.txt
 python main.py --user-id <UUID> --top-n 5   # 为指定用户生成 Top-N 推荐
 ```
 
-- 算法：Item-Based Collaborative Filtering（余弦相似度 + 加权平均预测）
-- 冷启动保护：用户不存在 / 无评分 / 无候选书时返回对应状态而非报错
+- 算法：混合推荐 —— CF 相似度只在共同评分者维度计算并按 `n/(n+10)` 置信收缩；无共评者时回退到内容相似度（标签 Jaccard 50% + 同作者 30% + 同系列 20%）；预测全并列时按内容亲和度排序兜底
+- 冷启动保护：用户不存在 / 无评分 / 无候选书时返回对应状态而非报错；数据稀疏时内容信号保证仍能出推荐
+- 质量保障：`python verify_algo.py` 算法回归验证；`python stress_test.py` 随机压力测试（值域、泄漏、确定性等 12 项检查）
 - 测试脚本：`python test_data.py` 幂等创建测试用户与评分；`python cleanup_test_data.py` 一键清理
