@@ -68,3 +68,46 @@ sim3 = compute_item_similarity(m3)
 for u in ["u01", "u05"]:
     r3 = recommend(u, m3, sim3, books8, authors, top_n=3)
     print(f"regression {u}: {r3['status']} -> {[(x['book_id'], x['score']) for x in r3['recommendations']]}")
+
+# --- 内容相似度与内容排序兜底 (混合算法新增) ---
+from recommender import _content_rank, compute_content_similarity
+
+bcont = pd.DataFrame(
+    {
+        "id": ["x1", "x2", "x3"],
+        "title": ["X1", "X2", "X3"],
+        "author_id": ["p", "q", "p"],
+        "series_id": [None, None, None],
+        "tags": [["本格", "日系"], ["本格", "日系"], ["社会派"]],
+    }
+)
+csim = compute_content_similarity(bcont)
+print(f"[content] sim(x1,x2)={csim.loc['x1', 'x2']:.2f} (同标签异作者, 期望 0.50)")
+print(f"[content] sim(x1,x3)={csim.loc['x1', 'x3']:.2f} (异标签同作者, 期望 0.30)")
+ranked = _content_rank(csim, ["x2", "x3"], pd.Index(["x1"]), 2)
+order = [b for b, _ in ranked] if ranked else None
+print(f"[content-rank] 已评x1时候选排序: {order} (期望 x2 在前)")
+
+# 单用户 + 内容相似 => 应能出推荐 (混合算法关键场景)
+solo = pd.DataFrame(
+    [{"user_id": "solo", "book_id": b, "value": 5} for b in ["byh", "xyx", "ey", "zx", "dyx", "dfk"]]
+)
+mb = ["byh", "xyx", "ey", "zx", "dyx", "dfk", "wrs", "xl"]
+bsolo = pd.DataFrame(
+    {
+        "id": mb,
+        "title": mb,
+        "author_id": ["a"] * 8,
+        "series_id": [None] * 8,
+        "tags": [
+            ["社会派", "日系"], ["社会派", "日系"], ["日系", "心理悬疑"],
+            ["本格推理", "日系"], ["社会派", "日系"], ["欧美", "本格推理"],
+            ["欧美", "本格推理", "孤岛悬疑"], ["硬核推理", "欧美"],
+        ],
+    }
+)
+csolo = compute_content_similarity(bsolo)
+msolo = build_rating_matrix(solo, mb)
+ssolo = compute_item_similarity(msolo, content_sim=csolo)
+res_solo = recommend("solo", msolo, ssolo, bsolo, authors, top_n=3, content_sim=csolo)
+print(f"[solo+content] status={res_solo['status']} -> {[(r['book_id'], r['score']) for r in res_solo['recommendations']]} (期望 ok)")

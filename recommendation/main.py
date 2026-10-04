@@ -1,15 +1,23 @@
 """命令行入口: python main.py --user-id USER_ID [--top-n 5]"""
 
 import argparse
-
-import pandas as pd
+import sys
 
 from config import load_config
 from data_loader import load_authors, load_books, load_ratings
-from recommender import build_rating_matrix, compute_item_similarity, recommend
+from recommender import (
+    build_rating_matrix,
+    compute_content_similarity,
+    compute_item_similarity,
+    recommend,
+)
 
 
 def main() -> None:
+    # Windows 控制台默认 GBK，书名为 UTF-8 时输出乱码
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(description="The Nook 推荐算法")
     parser.add_argument("--user-id", required=True, help="用户 UUID")
     parser.add_argument("--top-n", type=int, default=5, help="推荐数量 (默认 5)")
@@ -29,10 +37,11 @@ def main() -> None:
         print("\nNo ratings in database. Insufficient data for recommendations.")
         return
 
-    # 3. 构建评分矩阵 + 计算相似度
+    # 3. 构建评分矩阵 + 混合相似度（CF 收缩 + 内容相似）
     all_book_ids = books["id"].tolist()
     matrix = build_rating_matrix(ratings, all_book_ids)
-    item_sim = compute_item_similarity(matrix)
+    content_sim = compute_content_similarity(books)
+    item_sim = compute_item_similarity(matrix, content_sim=content_sim)
 
     # 4. 生成推荐
     result = recommend(
@@ -42,6 +51,7 @@ def main() -> None:
         books=books,
         authors=authors,
         top_n=args.top_n,
+        content_sim=content_sim,
     )
 
     # 5. 输出结果

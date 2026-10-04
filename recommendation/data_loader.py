@@ -66,13 +66,13 @@ def load_books(supabase_url: str, service_key: str) -> pd.DataFrame:
     """读取全部书籍。
 
     Returns:
-        DataFrame: id, title, author_id
+        DataFrame: id, title, author_id, series_id, tags
     """
     client = create_client(supabase_url, service_key)
-    rows = _fetch_all(client, "books", "id, title, author_id")
+    rows = _fetch_all(client, "books", "id, title, author_id, series_id, tags")
     df = pd.DataFrame(rows)
     if df.empty:
-        df = pd.DataFrame(columns=["id", "title", "author_id"])
+        df = pd.DataFrame(columns=["id", "title", "author_id", "series_id", "tags"])
     print(f"Loaded books: {len(df)}")
     return df
 
