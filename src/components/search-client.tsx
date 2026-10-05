@@ -191,8 +191,9 @@ export function SearchClient({
                         <h3 className="search-row-title">{book.title}</h3>
                         <span className="meta-text">
                           [{book.year}] {book.readTime} ·{" "}
-                          {(ratingAverages[book.id] ?? book.rating).toFixed(1)}{" "}
-                          / 5
+                          {(ratingAverages[book.id] ?? book.rating) > 0
+                            ? `${(ratingAverages[book.id] ?? book.rating).toFixed(1)} / 5`
+                            : "暂无评分"}
                         </span>
                       </div>
                       <p className="meta-text">

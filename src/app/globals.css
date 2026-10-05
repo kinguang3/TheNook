@@ -1323,15 +1323,15 @@ body.sidebar-resizing {
     grid-template-columns: 1fr;
   }
 
-.site-footer,
-.section-head,
-.collection-item {
-  flex-direction: column;
-}
+  .site-footer,
+  .section-head,
+  .collection-item {
+    flex-direction: column;
+  }
 
-.section-head {
-  align-items: flex-start;
-}
+  .section-head {
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 700px) {

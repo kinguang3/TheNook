@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Book, UserData, RatingStat, TimelineReview } from '@/lib/types'
@@ -10,7 +9,7 @@ import { Typewriter } from '@/components/typewriter'
 
 type SortKey = 'year' | 'rating'
 type RegionFilter = 'all' | 'uk' | 'jp'
-type EraFilter = 'all' | '1980s' | '1990s' | '2010s' | '2020s'
+type EraFilter = 'all' | 'pre-1980' | '1980s' | '1990s' | '2000s' | '2010s' | '2020s'
 type TypeFilter = 'all' | 'detective' | 'standalone' | 'locked-room' | 'serial'
 
 const regionOptions: { value: RegionFilter; label: string; field: 'REGION' }[] = [
@@ -21,8 +20,10 @@ const regionOptions: { value: RegionFilter; label: string; field: 'REGION' }[] =
 
 const eraOptions: { value: EraFilter; label: string; field: 'ERA' }[] = [
   { value: 'all', label: '全部年代', field: 'ERA' },
+  { value: 'pre-1980', label: '1980 年前', field: 'ERA' },
   { value: '1980s', label: '1980s', field: 'ERA' },
   { value: '1990s', label: '1990s', field: 'ERA' },
+  { value: '2000s', label: '2000s', field: 'ERA' },
   { value: '2010s', label: '2010s', field: 'ERA' },
   { value: '2020s', label: '2020s', field: 'ERA' },
 ]
@@ -50,16 +51,10 @@ export default function HomeClient({
   timelineReviews,
   isLoggedIn,
 }: HomeClientProps) {
-  const router = useRouter()
-
   const [sortBy, setSortBy] = useState<SortKey>('year')
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all')
   const [eraFilter, setEraFilter] = useState<EraFilter>('all')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
-  const [visibleCount, setVisibleCount] = useState(4)
-  const [jumpToYear, setJumpToYear] = useState<number | null>(null)
-  const timelineRef = useRef<HTMLDivElement>(null)
-
 
   const ratingMap = useMemo(() => {
     const map = new Map<string, { avg: number; count: number }>()
@@ -82,8 +77,10 @@ export default function HomeClient({
       // Era filter
       if (eraFilter !== 'all') {
         const year = book.year
+        if (eraFilter === 'pre-1980' && year >= 1980) return false
         if (eraFilter === '1980s' && (year < 1980 || year >= 1990)) return false
         if (eraFilter === '1990s' && (year < 1990 || year >= 2000)) return false
+        if (eraFilter === '2000s' && (year < 2000 || year >= 2010)) return false
         if (eraFilter === '2010s' && (year < 2010 || year >= 2020)) return false
         if (eraFilter === '2020s' && (year < 2020 || year >= 2030)) return false
       }
@@ -94,7 +91,7 @@ export default function HomeClient({
           if (!book.tags.includes('本格推理') && !book.tags.includes('本格')) return false
         }
         if (typeFilter === 'standalone') {
-          if (book.id !== 'our-houses' && book.id !== 'magpie-murders') return false
+          if (book.seriesId) return false
         }
         if (typeFilter === 'locked-room') {
           if (!book.tags.some((t) => ['孤岛悬疑', '不可能犯罪'].includes(t))) return false
@@ -144,14 +141,6 @@ export default function HomeClient({
     return map
   }, [initialBooks])
 
-  // Ref callback (simplified - no animation)
-  const itemRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      // No-op for now
-    },
-    [],
-  )
-
   // Handle URL params for jump-to
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -159,7 +148,6 @@ export default function HomeClient({
     if (yearParam) {
       const year = parseInt(yearParam)
       if (!isNaN(year)) {
-        setJumpToYear(year)
         setTimeout(() => {
           const el = document.getElementById(`year-${year}`)
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -170,16 +158,12 @@ export default function HomeClient({
 
   const handleSortChange = (key: SortKey) => {
     setSortBy(key)
-    setVisibleCount(4)
-    setJumpToYear(null)
   }
 
   const clearFilters = () => {
     setRegionFilter('all')
     setEraFilter('all')
     setTypeFilter('all')
-    setVisibleCount(4)
-    setJumpToYear(null)
   }
 
   const hasActiveFilters = regionFilter !== 'all' || eraFilter !== 'all' || typeFilter !== 'all'
@@ -275,7 +259,7 @@ export default function HomeClient({
         </div>
       </header>
 
-      <div className="casebook-timeline" ref={timelineRef}>
+      <div className="casebook-timeline">
         {sortBy === 'year' && booksByYear ? (
           // Chronological view with year markers
           Array.from(booksByYear.entries()).map(([year, books]) => (
@@ -285,7 +269,7 @@ export default function HomeClient({
                 <span className="year-line" />
               </div>
               <div className="year-books">
-                {books.map((book, idx) => {
+                {books.map((book) => {
                   const caseNum = caseNumbers.get(book.id) || 0
                   const rating = ratingMap.get(book.id)
                   return (
@@ -296,8 +280,6 @@ export default function HomeClient({
                       rating={rating}
                       userData={userData}
                       isLoggedIn={isLoggedIn}
-                      index={idx}
-                      ref={itemRef}
                     />
                   )
                 })}
@@ -306,7 +288,7 @@ export default function HomeClient({
           ))
         ) : (
           // Flat list view for rating sort
-          filteredBooks.map((book, idx) => {
+          filteredBooks.map((book) => {
             const caseNum = caseNumbers.get(book.id) || 0
             const rating = ratingMap.get(book.id)
             return (
@@ -317,8 +299,6 @@ export default function HomeClient({
                 rating={rating}
                 userData={userData}
                 isLoggedIn={isLoggedIn}
-                index={idx}
-                ref={itemRef}
               />
             )
           })
@@ -345,12 +325,10 @@ interface CasebookCardProps {
   rating?: { avg: number; count: number }
   userData?: UserData
   isLoggedIn: boolean
-  index: number
 }
 
 const CasebookCard = forwardRef<HTMLDivElement, CasebookCardProps>(
-  ({ book, caseNum, rating, userData, isLoggedIn, index }, ref) => {
-    const router = useRouter()
+  ({ book, caseNum, rating, userData, isLoggedIn }, ref) => {
     const avgRating = rating?.avg ?? 0
     const ratingCount = rating?.count ?? 0
     const isFavorite = userData?.favorites.includes(book.id) ?? false

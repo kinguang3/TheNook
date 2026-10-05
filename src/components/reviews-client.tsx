@@ -148,10 +148,15 @@ export function ReviewsClient({
                   读者综合评分 · {initialRatingStat.ratingCount} 人参与
                 </p>
               </>
-            ) : (
+            ) : book.rating > 0 ? (
               <>
                 <p className="rating-figure">{book.rating.toFixed(1)} / 5</p>
                 <p className="meta-text">档案评分</p>
+              </>
+            ) : (
+              <>
+                <p className="rating-figure">暂无评分</p>
+                <p className="meta-text">还没有读者评分</p>
               </>
             )}
           </div>
