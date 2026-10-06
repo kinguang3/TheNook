@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
 
+  let reason = "exchange-failed";
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
@@ -20,7 +21,12 @@ export async function GET(request: NextRequest) {
       const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
       return NextResponse.redirect(`${origin}${safeNext}`);
     }
+    reason = (error as { code?: string }).code ?? error.name ?? "exchange-failed";
+  } else {
+    reason = "missing-code";
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth-callback-failed`);
+  return NextResponse.redirect(
+    `${origin}/login?error=auth-callback-failed&reason=${encodeURIComponent(reason)}`,
+  );
 }

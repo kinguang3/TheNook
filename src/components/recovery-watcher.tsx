@@ -16,7 +16,14 @@ export function RecoveryWatcher() {
     const code = params.get("code");
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
-        if (error) return;
+        if (error) {
+          const reason =
+            (error as { code?: string }).code ?? error.name ?? "exchange-failed";
+          window.location.replace(
+            `/login?error=auth-callback-failed&reason=${encodeURIComponent(reason)}`,
+          );
+          return;
+        }
         const url = new URL(window.location.href);
         url.searchParams.delete("code");
         url.searchParams.delete("flow");

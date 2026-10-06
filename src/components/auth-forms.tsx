@@ -12,8 +12,11 @@ import {
 
 const emptyState: AuthState = {};
 
-export function LoginForm() {
-  const [state, formAction, pending] = useActionState(login, emptyState);
+export function LoginForm({ initialError }: { initialError?: string }) {
+  const [state, formAction, pending] = useActionState(
+    login,
+    initialError ? { error: initialError } : emptyState,
+  );
 
   return (
     <form action={formAction} className="auth-card">
