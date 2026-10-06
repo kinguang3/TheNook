@@ -1,7 +1,13 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  NOOK_PKCE_COOKIE,
+  generateRecoveryVerifier,
+  recoveryChallenge,
+} from "@/lib/pkce-recovery";
 
 export type AuthState = {
   error?: string;
@@ -87,20 +93,59 @@ export async function resetPassword(
     return { error: "请输入邮箱地址。" };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl()}/auth/callback`,
-  });
+  // 自持 PKCE：verifier 存在我们自己的 cookie 里，不依赖 auth-js 的
+  // verifier cookie（会话清理/刷新失败时会被 removeAllPKCEVerifiers 误删）
+  const verifier = generateRecoveryVerifier();
+  const codeChallenge = await recoveryChallenge(verifier);
+  // nk 让 verifier 随邮件链接走：换设备点击时没有自持 cookie，链接自带兜底
+  const redirectTarget = `${siteUrl()}/auth/callback?nk=${verifier}`;
+  const recoverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTarget)}`;
 
-  if (error) {
-    if (/rate limit|too many|security purposes/i.test(error.message)) {
+  let status: number;
+  let msg = "";
+  try {
+    const res = await fetch(recoverUrl, {
+      method: "POST",
+      headers: {
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        code_challenge: codeChallenge,
+        code_challenge_method: "s256",
+      }),
+    });
+    status = res.status;
+    if (!res.ok) {
+      try {
+        msg = (await res.json())?.msg ?? "";
+      } catch {
+        // 忽略非 JSON 错误体
+      }
+    }
+  } catch {
+    return { error: "网络错误，请稍后再试" };
+  }
+
+  if (status >= 400) {
+    if (status === 429 || /rate limit/i.test(msg)) {
       return { error: "操作太频繁，请稍后再试" };
     }
-    if (error.status && error.status >= 500) {
+    if (status >= 500) {
       return { error: "邮件发送失败，请稍后再试" };
     }
-    return { error: error.message || "发送失败，请稍后再试" };
+    return { error: msg || "发送失败，请稍后再试" };
   }
+
+  const cookieStore = await cookies();
+  cookieStore.set(NOOK_PKCE_COOKIE, verifier, {
+    path: "/",
+    maxAge: 3600,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+  });
 
   return { message: "重置链接已发送到您的邮箱，请查收。" };
 }
