@@ -97,7 +97,9 @@ export async function resetPassword(
   // verifier cookie（会话清理/刷新失败时会被 removeAllPKCEVerifiers 误删）
   const verifier = generateRecoveryVerifier();
   const codeChallenge = await recoveryChallenge(verifier);
-  const recoverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(`${siteUrl()}/auth/callback`)}`;
+  // nk 让 verifier 随邮件链接走：换设备点击时没有自持 cookie，链接自带兜底
+  const redirectTarget = `${siteUrl()}/auth/callback?nk=${verifier}`;
+  const recoverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTarget)}`;
 
   let status: number;
   let msg = "";

@@ -35,13 +35,21 @@ export async function GET(request: NextRequest) {
   const pending: PendingCookie[] = [];
 
   if (code) {
-    // 恢复流程的 verifier 来自我们自持的 cookie；auth-js 读不到自己那份时，
-    // 用自持值合成它要求的 legacy cookie（仅当真实 legacy 缺失才注入，
+    // verifier 双通道：优先取链接自带的 nk（跨设备点击时 cookie 不存在），
+    // 其次取自持 cookie（同设备兜底）。auth-js 读不到自己那份时，
+    // 用选定值合成它要求的 legacy cookie（仅当真实 legacy 缺失才注入，
     // 避免干扰验证码/注册流程）
     let verifier: string | null = null;
-    const nook = request.cookies.get(NOOK_PKCE_COOKIE)?.value;
-    if (nook && /^[A-Za-z0-9_-]{43,128}$/.test(nook)) {
-      verifier = nook;
+    let fromCookie = false;
+    const nk = searchParams.get("nk");
+    if (nk && /^[A-Za-z0-9_-]{43,128}$/.test(nk)) {
+      verifier = nk;
+    } else {
+      const nook = request.cookies.get(NOOK_PKCE_COOKIE)?.value;
+      if (nook && /^[A-Za-z0-9_-]{43,128}$/.test(nook)) {
+        verifier = nook;
+        fromCookie = true;
+      }
     }
 
     const supabase = createServerClient(
@@ -81,7 +89,8 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      if (verifier) {
+      if (fromCookie) {
+        // 只清 cookie 通道的 verifier；nk 来源时 cookie 可能属于另一个待用流程
         pending.push({
           name: NOOK_PKCE_COOKIE,
           value: "",
