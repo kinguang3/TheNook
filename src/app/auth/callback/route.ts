@@ -23,7 +23,9 @@ export async function GET(request: NextRequest) {
     }
     reason = (error as { code?: string }).code ?? error.name ?? "exchange-failed";
   } else {
-    reason = "missing-code";
+    // GoTrue 对无效/过期/已用的链接：303 到 redirect_to?error=access_denied&error_code=...
+    const goTrueError = searchParams.get("error_code") ?? searchParams.get("error");
+    reason = goTrueError ? `verify:${goTrueError}` : "missing-code";
   }
 
   return NextResponse.redirect(
