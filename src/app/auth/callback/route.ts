@@ -1,9 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import {
-  LEGACY_VERIFIER_COOKIE,
-  NOOK_PKCE_COOKIE,
-} from "@/lib/pkce-recovery";
 
 type CookieOptions = {
   path?: string;
@@ -35,43 +31,13 @@ export async function GET(request: NextRequest) {
   const pending: PendingCookie[] = [];
 
   if (code) {
-    // verifier 双通道：优先取链接自带的 nk（跨设备点击时 cookie 不存在），
-    // 其次取自持 cookie（同设备兜底）。auth-js 读不到自己那份时，
-    // 用选定值合成它要求的 legacy cookie（仅当真实 legacy 缺失才注入，
-    // 避免干扰验证码/注册流程）
-    let verifier: string | null = null;
-    let fromCookie = false;
-    const nk = searchParams.get("nk");
-    if (nk && /^[A-Za-z0-9_-]{43,128}$/.test(nk)) {
-      verifier = nk;
-    } else {
-      const nook = request.cookies.get(NOOK_PKCE_COOKIE)?.value;
-      if (nook && /^[A-Za-z0-9_-]{43,128}$/.test(nook)) {
-        verifier = nook;
-        fromCookie = true;
-      }
-    }
-
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
-            const base = request.cookies.getAll();
-            if (
-              verifier &&
-              !base.some((c) => c.name === LEGACY_VERIFIER_COOKIE)
-            ) {
-              return [
-                ...base,
-                {
-                  name: LEGACY_VERIFIER_COOKIE,
-                  value: JSON.stringify(`${verifier}/recovery`),
-                },
-              ];
-            }
-            return base;
+            return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
             for (const { name, value, options } of cookiesToSet) {
@@ -89,20 +55,6 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      if (fromCookie) {
-        // 只清 cookie 通道的 verifier；nk 来源时 cookie 可能属于另一个待用流程
-        pending.push({
-          name: NOOK_PKCE_COOKIE,
-          value: "",
-          options: {
-            path: "/",
-            maxAge: 0,
-            httpOnly: true,
-            sameSite: "lax",
-            secure: true,
-          },
-        });
-      }
       // 重置密码链接：verifier 带 recovery 标记，必须去设置新密码页
       // （运行时返回 redirectType，类型声明尚未暴露）
       const redirectType = (data as { redirectType?: string } | null)
@@ -120,13 +72,15 @@ export async function GET(request: NextRequest) {
     const reason =
       (error as { code?: string }).code ?? error.name ?? "exchange-failed";
     // 幂等兜底：callback URL 被重复访问（刷新/回退/重复点击，或
-    // 邮箱安全预取已先行兑换销毁了 flow state）时，exchange 会报
-    // flow_state_not_found；但本浏览器若已持有成功兑换签发的会话，
-    // 直接进设置密码页即可——有会话就能改密码
+    // 邮箱安全预取已先行兑换销毁了 flow state/verifier cookie）时，
+    // exchange 会报 flow_state_not_found 或 verifier 缺失；但本浏览器
+    // 若已持有成功兑换签发的会话，直接进设置密码页即可——有会话就能改密码
     if (
       reason === "flow_state_not_found" ||
       reason === "flow_state_expired" ||
-      reason === "invalid_grant"
+      reason === "invalid_grant" ||
+      reason === "pkce_code_verifier_not_found" ||
+      reason === "AuthPKCECodeVerifierMissingError"
     ) {
       const {
         data: { user },
