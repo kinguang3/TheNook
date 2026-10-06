@@ -119,6 +119,24 @@ export async function GET(request: NextRequest) {
     }
     const reason =
       (error as { code?: string }).code ?? error.name ?? "exchange-failed";
+    // 幂等兜底：callback URL 被重复访问（刷新/回退/重复点击，或
+    // 邮箱安全预取已先行兑换销毁了 flow state）时，exchange 会报
+    // flow_state_not_found；但本浏览器若已持有成功兑换签发的会话，
+    // 直接进设置密码页即可——有会话就能改密码
+    if (
+      reason === "flow_state_not_found" ||
+      reason === "flow_state_expired" ||
+      reason === "invalid_grant"
+    ) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const res = NextResponse.redirect(`${origin}/auth/reset-password`);
+        applyCookies(res, pending);
+        return res;
+      }
+    }
     const res = NextResponse.redirect(
       `${origin}/login?error=auth-callback-failed&reason=${encodeURIComponent(reason)}`,
     );

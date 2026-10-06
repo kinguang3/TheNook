@@ -13,7 +13,8 @@ const CALLBACK_ERROR_MESSAGES: Record<string, string> = {
   AuthPKCEGrantCodeExchangeError: "验证失败，请重新发送重置链接。",
   invalid_grant: "重置链接已过期、已使用或验证状态不匹配，请重新发送。",
   bad_code_verifier: "验证状态不匹配，请重新发送并点击最新一封邮件中的链接。",
-  flow_state_not_found: "验证状态不存在，请重新发送重置链接。",
+  flow_state_not_found:
+    "验证状态不存在（链接可能已被使用或重复打开），请重新发送重置链接。",
   flow_state_expired: "验证状态已过期，请重新发送重置链接。",
   "verify:otp_expired": "邮件链接无效或已过期（重置链接只能使用一次，约 1 小时有效）。请重新发送，并点击最新一封邮件中的链接。",
   missing_code: "邮件链接无效、已过期或不完整，请重新发送并点击最新一封邮件中的链接。",
