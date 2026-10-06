@@ -30,26 +30,11 @@ export function RecoveryWatcher() {
     }
 
     const code = params.get("code");
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
-        if (error) {
-          const reason =
-            (error as { code?: string }).code ?? error.name ?? "exchange-failed";
-          window.location.replace(
-            `/login?error=auth-callback-failed&reason=${encodeURIComponent(reason)}`,
-          );
-          return;
-        }
-        const url = new URL(window.location.href);
-        url.searchParams.delete("code");
-        url.searchParams.delete("flow");
-        window.history.replaceState(null, "", url.toString());
-        const redirectType = (data as { redirectType?: string } | null)
-          ?.redirectType;
-        router.replace(
-          redirectType === "recovery" ? "/auth/reset-password" : "/",
-        );
-      });
+    if (code && window.location.pathname !== "/auth/callback") {
+      // 服务端有自持 verifier 的合成逻辑，客户端 exchange 拿不到它，
+      // 统一回服务端 callback 完成兑换
+      window.location.replace(`/auth/callback${window.location.search}`);
+      return;
     }
 
     // 兜底 2: implicit hash 流程 (#access_token=...&type=recovery) 落到任意页
