@@ -15,6 +15,11 @@ function siteUrl(): string {
   );
 }
 
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  "Invalid login credentials": "邮箱或密码错误，请重新输入",
+  "Email not confirmed": "邮箱尚未验证，请先查收验证邮件",
+};
+
 export async function login(
   _previousState: AuthState,
   formData: FormData,
@@ -29,7 +34,7 @@ export async function login(
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: AUTH_ERROR_MESSAGES[error.message] ?? error.message };
   }
 
   redirect("/");
