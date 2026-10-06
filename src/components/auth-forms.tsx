@@ -2,7 +2,13 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { login, signup, resetPassword, type AuthState } from "@/app/actions/auth";
+import {
+  login,
+  signup,
+  resetPassword,
+  updatePassword,
+  type AuthState,
+} from "@/app/actions/auth";
 
 const emptyState: AuthState = {};
 
@@ -145,6 +151,59 @@ export function ForgotPasswordForm() {
 
       <p className="auth-switch">
         <Link href="/login">返回登录</Link>
+      </p>
+    </form>
+  );
+}
+
+export function ResetPasswordForm() {
+  const [state, formAction, pending] = useActionState(updatePassword, emptyState);
+
+  return (
+    <form action={formAction} className="auth-card">
+      <p className="eyebrow">[+] New Password</p>
+      <h1>设置新密码</h1>
+
+      <div className="auth-field">
+        <label htmlFor="reset-password">新密码</label>
+        <input
+          id="reset-password"
+          name="password"
+          type="password"
+          className="auth-input"
+          autoComplete="new-password"
+          minLength={6}
+          required
+        />
+        <p className="meta-text">至少 6 位，建议包含字母与数字。</p>
+      </div>
+
+      <div className="auth-field">
+        <label htmlFor="reset-confirm">确认新密码</label>
+        <input
+          id="reset-confirm"
+          name="confirm"
+          type="password"
+          className="auth-input"
+          autoComplete="new-password"
+          minLength={6}
+          required
+        />
+      </div>
+
+      {state?.error ? (
+        <p className="auth-error" role="alert">
+          {state.error}
+        </p>
+      ) : null}
+      {state?.message ? <p className="auth-message">{state.message}</p> : null}
+
+      <button type="submit" className="auth-submit" disabled={pending}>
+        {pending ? "更新中..." : "更新密码"}
+      </button>
+
+      <p className="auth-switch">
+        <Link href="/">暂不修改，返回首页</Link>
       </p>
     </form>
   );

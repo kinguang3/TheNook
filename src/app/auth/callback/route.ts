@@ -8,9 +8,17 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      // 重置密码链接：verifier 带 recovery 标记，必须去设置新密码页
+      // （运行时返回 redirectType，类型声明尚未暴露）
+      const redirectType = (data as { redirectType?: string } | null)
+        ?.redirectType;
+      if (redirectType === "recovery") {
+        return NextResponse.redirect(`${origin}/auth/reset-password`);
+      }
+      const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+      return NextResponse.redirect(`${origin}${safeNext}`);
     }
   }
 

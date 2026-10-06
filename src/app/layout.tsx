@@ -4,6 +4,7 @@ import { Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import { RainLayer } from "@/components/rain-layer";
+import { RecoveryWatcher } from "@/components/recovery-watcher";
 import { Sidebar } from "@/components/sidebar";
 
 const plexMono = IBM_Plex_Mono({
@@ -34,6 +35,7 @@ export default async function RootLayout(props: LayoutProps<"/">) {
     <html lang="zh-CN" className={`${plexMono.variable} ${serif.variable}`}>
       <body>
         <RainLayer />
+        <RecoveryWatcher />
         <div className="app-shell">
           <Sidebar userEmail={user?.email ?? null} />
           <div className="app-main">

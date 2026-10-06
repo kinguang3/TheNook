@@ -8,6 +8,13 @@ export type AuthState = {
   message?: string;
 };
 
+function siteUrl(): string {
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(
+    /\/+$/,
+    "",
+  );
+}
+
 export async function login(
   _previousState: AuthState,
   formData: FormData,
@@ -44,7 +51,7 @@ export async function signup(
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
+      emailRedirectTo: `${siteUrl()}/auth/callback`,
     },
   });
 
@@ -77,7 +84,7 @@ export async function resetPassword(
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
+    redirectTo: `${siteUrl()}/auth/callback`,
   });
 
   if (error) {
@@ -85,4 +92,31 @@ export async function resetPassword(
   }
 
   return { message: "重置链接已发送到您的邮箱，请查收。" };
+}
+
+export async function updatePassword(
+  _previousState: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  if (password.length < 6) {
+    return { error: "密码至少 6 位" };
+  }
+  if (password !== confirm) {
+    return { error: "两次输入的密码不一致" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    if (error.message.toLowerCase().includes("session")) {
+      return { error: "登录会话已过期，请回邮箱重新点击重置链接" };
+    }
+    return { error: error.message };
+  }
+
+  redirect("/");
 }
