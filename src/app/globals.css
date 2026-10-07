@@ -56,19 +56,8 @@ textarea {
   pointer-events: none;
 }
 
-.footprints-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
 .rain-layer {
   z-index: 0;
-}
-
-.footprints-layer {
-  z-index: 1;
-  overflow: hidden;
 }
 
 .app-shell {
@@ -1108,74 +1097,6 @@ body.sidebar-resizing {
   font-size: 0.82rem;
 }
 
-.footprint {
-  position: absolute;
-  width: 34px;
-  height: 78px;
-  opacity: 0;
-  pointer-events: none;
-  transform-origin: center;
-  will-change: transform, opacity;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.04));
-}
-
-.footprint-sole,
-.footprint-heel,
-.footprint-toe {
-  position: absolute;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 999px;
-}
-
-.footprint-sole {
-  left: 10px;
-  top: 22px;
-  width: 16px;
-  height: 34px;
-  border-radius: 58% 58% 48% 48%;
-}
-
-.footprint-heel {
-  left: 9px;
-  bottom: 8px;
-  width: 18px;
-  height: 18px;
-  border-radius: 46% 46% 52% 52%;
-}
-
-.footprint-toe {
-  top: 0;
-  transform-origin: center;
-}
-
-.footprint-toe.t1 {
-  left: 1px;
-  width: 8px;
-  height: 8px;
-}
-
-.footprint-toe.t2 {
-  left: 8px;
-  top: 2px;
-  width: 9px;
-  height: 9px;
-}
-
-.footprint-toe.t3 {
-  left: 16px;
-  top: 3px;
-  width: 8px;
-  height: 8px;
-}
-
-.footprint-toe.t4 {
-  left: 23px;
-  top: 8px;
-  width: 7px;
-  height: 7px;
-}
-
 /* ---------- 认证表单 ---------- */
 
 .auth-wrap {
@@ -1335,10 +1256,6 @@ body.sidebar-resizing {
 }
 
 @media (max-width: 700px) {
-  .footprints-layer {
-    display: none;
-  }
-
   .app-main {
     padding: 12px 10px 48px;
   }

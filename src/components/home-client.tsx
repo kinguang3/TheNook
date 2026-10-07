@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { Book, UserData, RatingStat, TimelineReview } from '@/lib/types'
+import type { Book, UserData, RatingStat } from '@/lib/types'
 import { toggleFavorite } from '@/app/actions/user-data'
 import { Typewriter } from '@/components/typewriter'
 
@@ -40,7 +40,6 @@ interface HomeClientProps {
   initialBooks: Book[]
   userData?: UserData
   ratingStats: RatingStat[]
-  timelineReviews: TimelineReview[]
   isLoggedIn: boolean
 }
 
@@ -48,7 +47,6 @@ export default function HomeClient({
   initialBooks,
   userData,
   ratingStats,
-  timelineReviews,
   isLoggedIn,
 }: HomeClientProps) {
   const [sortBy, setSortBy] = useState<SortKey>('year')
@@ -316,9 +314,6 @@ function RatingDisplay({ value, count }: { value: number; count: number }) {
   )
 }
 
-// Separate component for casebook cards
-import { forwardRef } from 'react'
-
 interface CasebookCardProps {
   book: Book
   caseNum: number
@@ -327,105 +322,104 @@ interface CasebookCardProps {
   isLoggedIn: boolean
 }
 
-const CasebookCard = forwardRef<HTMLDivElement, CasebookCardProps>(
-  ({ book, caseNum, rating, userData, isLoggedIn }, ref) => {
-    const avgRating = rating?.avg ?? 0
-    const ratingCount = rating?.count ?? 0
-    const isFavorite = userData?.favorites.includes(book.id) ?? false
-    const [favActive, setFavActive] = useState(isFavorite)
-    const [favBusy, setFavBusy] = useState(false)
+function CasebookCard({
+  book,
+  caseNum,
+  rating,
+  userData,
+  isLoggedIn,
+}: CasebookCardProps) {
+  const avgRating = rating?.avg ?? 0
+  const ratingCount = rating?.count ?? 0
+  const isFavorite = userData?.favorites.includes(book.id) ?? false
+  const [favActive, setFavActive] = useState(isFavorite)
+  const [favBusy, setFavBusy] = useState(false)
 
-    // Determine series indicator
-    const seriesIndicator = book.seriesName !== '单行本' ? book.seriesName : ''
+  // Determine series indicator
+  const seriesIndicator = book.seriesName !== '单行本' ? book.seriesName : ''
 
-    const handleToggleFavorite = async () => {
-      if (favBusy || !isLoggedIn) return
-      setFavBusy(true)
-      const result = await toggleFavorite(book.id)
-      if (result?.data) {
-        setFavActive(result.data.favorites.includes(book.id))
-      }
-      setFavBusy(false)
+  const handleToggleFavorite = async () => {
+    if (favBusy || !isLoggedIn) return
+    setFavBusy(true)
+    const result = await toggleFavorite(book.id)
+    if (result?.data) {
+      setFavActive(result.data.favorites.includes(book.id))
     }
+    setFavBusy(false)
+  }
 
-    return (
-      <div
-        ref={ref}
-        className="casebook-card"
-      >
-        <div className="card-cover">
-          <Link href={`/books/${book.id}/reviews`}>
-            {book.coverUrl ? (
-              <Image
-                src={book.coverUrl}
-                alt={book.title}
-                fill
-                sizes="160px"
-                className="cover-image"
-              />
-            ) : (
-              <div className={`cover-placeholder cover-${book.coverTone}`}>
-                <span className="cover-mark">{book.coverMark}</span>
-              </div>
-            )}
-          </Link>
-          <div className="card-case-badge">
-            <span className="case-label">CASE</span>
-            <span className="case-value">{String(caseNum).padStart(3, '0')}</span>
-          </div>
-        </div>
-
-        <div className="card-content">
-          <div className="card-head">
-            <Link href={`/books/${book.id}/reviews`} className="card-title-link">
-              <h3 className="card-title">{book.title}</h3>
-            </Link>
-            {seriesIndicator && (
-              <span className="card-series">{seriesIndicator}</span>
-            )}
-          </div>
-
-          <div className="card-meta-row">
-            <span className="meta-author">{book.authorName}</span>
-            <span className="meta-dot">·</span>
-            <span className="meta-year">{book.year}</span>
-            <span className="meta-dot">·</span>
-            <span className="meta-readtime">{book.readTime}</span>
-          </div>
-
-          <p className="card-blurb">{book.blurb}</p>
-
-          <div className="card-tags">
-            {book.tags.slice(0, 4).map((tag) => (
-              <span key={tag} className="tag-chip">
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <div className="card-footer">
-            <div className="card-rating">
-              <RatingDisplay value={avgRating} count={ratingCount} />
-              {ratingCount > 0 && (
-                <span className="rating-count">({ratingCount} 人评)</span>
-              )}
+  return (
+    <div className="casebook-card">
+      <div className="card-cover">
+        <Link href={`/books/${book.id}/reviews`}>
+          {book.coverUrl ? (
+            <Image
+              src={book.coverUrl}
+              alt={book.title}
+              fill
+              sizes="160px"
+              className="cover-image"
+            />
+          ) : (
+            <div className={`cover-placeholder cover-${book.coverTone}`}>
+              <span className="cover-mark">{book.coverMark}</span>
             </div>
-
-            {isLoggedIn && (
-              <button
-                type="button"
-                className={`favorite-button ${favActive ? 'active' : ''}`}
-                onClick={handleToggleFavorite}
-                disabled={favBusy}
-              >
-                {favActive ? '★ 已收藏' : '☆ 收藏'}
-              </button>
-            )}
-          </div>
+          )}
+        </Link>
+        <div className="card-case-badge">
+          <span className="case-label">CASE</span>
+          <span className="case-value">{String(caseNum).padStart(3, '0')}</span>
         </div>
       </div>
-    )
-  },
-)
 
-CasebookCard.displayName = 'CasebookCard'
+      <div className="card-content">
+        <div className="card-head">
+          <Link href={`/books/${book.id}/reviews`} className="card-title-link">
+            <h3 className="card-title">{book.title}</h3>
+          </Link>
+          {seriesIndicator && (
+            <span className="card-series">{seriesIndicator}</span>
+          )}
+        </div>
+
+        <div className="card-meta-row">
+          <span className="meta-author">{book.authorName}</span>
+          <span className="meta-dot">·</span>
+          <span className="meta-year">{book.year}</span>
+          <span className="meta-dot">·</span>
+          <span className="meta-readtime">{book.readTime}</span>
+        </div>
+
+        <p className="card-blurb">{book.blurb}</p>
+
+        <div className="card-tags">
+          {book.tags.slice(0, 4).map((tag) => (
+            <span key={tag} className="tag-chip">
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <div className="card-footer">
+          <div className="card-rating">
+            <RatingDisplay value={avgRating} count={ratingCount} />
+            {ratingCount > 0 && (
+              <span className="rating-count">({ratingCount} 人评)</span>
+            )}
+          </div>
+
+          {isLoggedIn && (
+            <button
+              type="button"
+              className={`favorite-button ${favActive ? 'active' : ''}`}
+              onClick={handleToggleFavorite}
+              disabled={favBusy}
+            >
+              {favActive ? '★ 已收藏' : '☆ 收藏'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

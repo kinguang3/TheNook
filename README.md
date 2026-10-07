@@ -15,14 +15,14 @@ Next.js 16 · React 19 · TypeScript · Supabase
 ## 功能特色
 
 - **案件档案时间线**：作品按出版年份纵向展开，每本书分配与封面一致的 CASE 001-013 编号；打字机效果循环播放"每一本都是一场未完成的对话，等待被重新打开。"与"沿着时间线，重走那些让人失眠的推理小说。"
-- **三维筛选系统**：按地区（欧美/日系）、年代（1980s-2020s）、类型（本格推理/孤岛/连环杀手等）筛选书目
+- **多维筛选系统**：按地区（欧美/日系）、年代（1980 前 - 2020s）、类型（本格推理/孤岛/连环杀手等）筛选书目
 - **全局搜索**：单一输入框同时检索作者、书籍、时间线节点，URL 同步（`/search?q=`）可分享
 - **公开书评**：每本书拥有独立书评页（`/books/<bookId>/reviews`），登录后可发表、编辑、删除自己的评论
 - **书架**：收藏即上架，带真实封面（Supabase Storage）；阅读进度条自动推导未开始 / 阅读中 / 已读完
 - **个人数据**：收藏、评分（1–5 星）持久化到 Supabase，仅本人可见（RLS）
 - **读者综合评分**：聚合所有用户评分的平均分（`rating_stats` 视图），全站统一展示
 - **推荐算法（离线）**：Python 混合推荐 —— 共评余弦协同过滤（按共评人数置信收缩）+ 内容相似度（标签 / 作者 / 系列），自适应加权生成 Top-N 推荐
-- **用户系统**：注册 / 登录 / 忘记密码（Supabase Auth，邮箱验证），会话自动刷新
+- **用户系统**：注册 / 登录 / 忘记密码（Supabase Auth，邮箱验证），会话自动刷新；重置采用 PKCE 流程——同一浏览器内验证状态由 Cookie 继承，也支持把一次性验证符带入邮件链接，跨设备/跨浏览器点击即可完成密码重设
 
 ## 快速开始
 
@@ -84,18 +84,24 @@ npm run dev
 src/
 ├── app/
 │   ├── page.tsx                        # 首页（案件档案时间线 + 筛选）
+│   ├── topic/page.tsx                  # 作者 / 系列专题聚合页（/topic?type=author|series&id=）
 │   ├── search/page.tsx                 # 全局搜索页（需登录）
 │   ├── books/[bookId]/reviews/page.tsx # 每本书的独立书评页
 │   ├── shelf/page.tsx                  # 用户书架（收藏 + 阅读进度）
 │   ├── login/page.tsx                  # 登录
 │   ├── signup/page.tsx                 # 注册
 │   ├── forgot-password/page.tsx        # 忘记密码
-│   ├── auth/callback/route.ts          # 邮箱验证回调
+│   ├── auth/callback/route.ts          # 邮箱验证 / 密码重置回调（PKCE 兑换）
+│   ├── auth/reset-password/page.tsx    # 设置新密码
 │   ├── actions/                        # Server Actions（auth / user-data / shelf / reviews）
 │   └── globals.css
-├── components/                         # 侧边栏、书架、书评、搜索、打字机、动效组件
+├── components/                         # 侧边栏、书架、书评、搜索、打字机、动效与认证表单
+│   ├── auth-forms.tsx                  # 登录 / 注册 / 忘记密码 / 设置新密码表单
+│   ├── recovery-watcher.tsx            # 客户端兜底：拦截 ?code= / #error_code= 并转交服务端
+│   └── rain-layer.tsx                  # 背景动效
 ├── lib/
 │   ├── supabase/                       # 服务端/浏览器客户端
+│   ├── pkce-recovery.ts                # 密码重置 PKCE 工具（校验符 / 挑战 / Cookie 名）
 │   ├── data.ts                         # 数据读取封装
 │   └── types.ts                        # 领域类型
 └── proxy.ts                            # 会话刷新代理（Next.js 16 替代 middleware）
@@ -119,6 +125,8 @@ recommendation/                         # 推荐引擎（Python，离线运行�
 - 时间线 CASE 编号来自 `books.cover_mark`，新增书籍时需同步更新该字段与封面编号
 - `rating_stats` 是 security definer 视图，不支持 RLS；公开读取通过 `grant select to anon, authenticated` 授权
 - 搜索页面需要登录，未登录访问会自动重定向到 `/login`
+- 配置 Supabase Auth 时，**Redirect URLs** 必须同时包含 `NEXT_PUBLIC_SITE_URL/auth/callback` 与 `NEXT_PUBLIC_SITE_URL/auth/reset-password`，否则邮件链接会落回首页
+- 忘记密码的跨设备支持：`lib/pkce-recovery.ts` 会把一次性验证符放入邮件链接，回调优先用它完成兑换；本地测试可用假邮箱，`updatePassword` 会拦截真实取号行为
 
 ## 推荐引擎
 

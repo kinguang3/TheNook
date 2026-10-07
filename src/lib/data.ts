@@ -6,12 +6,10 @@ import type {
   Review,
   Series,
   ShelfData,
-  TimelineReview,
   UserData,
 } from "@/lib/types";
 
 const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
-const excerptLength = 80;
 
 export async function getAuthors(
   supabase: SupabaseClient,
@@ -109,10 +107,6 @@ export async function getUserData(
   };
 }
 
-export function getAllTags(books: Book[]): string[] {
-  return [...new Set(books.flatMap((book) => book.tags))];
-}
-
 export async function getShelfData(
   supabase: SupabaseClient,
   userId: string,
@@ -168,27 +162,6 @@ export async function getReviewsByBook(
     content: row.content,
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? row.created_at,
-    authorName: toAuthorName(row),
-  }));
-}
-
-export async function getRecentReviews(
-  supabase: SupabaseClient,
-): Promise<TimelineReview[]> {
-  const { data } = await supabase
-    .from("reviews")
-    .select("id, book_id, content, created_at, profiles(display_name)")
-    .order("created_at", { ascending: false })
-    .limit(300);
-
-  return ((data ?? []) as unknown as ReviewRow[]).map((row) => ({
-    id: row.id,
-    bookId: row.book_id,
-    excerpt:
-      row.content.length > excerptLength
-        ? `${row.content.slice(0, excerptLength)}……`
-        : row.content,
-    createdAt: row.created_at,
     authorName: toAuthorName(row),
   }));
 }

@@ -44,10 +44,6 @@ export type ShelfEntry = {
 
 export type ShelfData = Record<string, ShelfEntry>;
 
-export type ShelfRow = ShelfEntry & {
-  bookId: string;
-};
-
 export type Review = {
   id: string;
   bookId: string;
@@ -55,14 +51,6 @@ export type Review = {
   content: string;
   createdAt: string;
   updatedAt: string;
-  authorName: string;
-};
-
-export type TimelineReview = {
-  id: string;
-  bookId: string;
-  excerpt: string;
-  createdAt: string;
   authorName: string;
 };
 

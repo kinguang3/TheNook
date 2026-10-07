@@ -3,7 +3,6 @@ import {
   getAuthors,
   getBooks,
   getRatingStats,
-  getRecentReviews,
   getSeries,
   getUserData,
 } from "@/lib/data";
@@ -23,9 +22,8 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [userData, timelineReviews, ratingStats] = await Promise.all([
+  const [userData, ratingStats] = await Promise.all([
     user ? getUserData(supabase, user.id) : Promise.resolve(emptyUserData),
-    getRecentReviews(supabase),
     getRatingStats(supabase),
   ]);
 
@@ -34,7 +32,6 @@ export default async function HomePage() {
       initialBooks={books}
       userData={userData}
       ratingStats={ratingStats}
-      timelineReviews={timelineReviews}
       isLoggedIn={Boolean(user)}
     />
   );
