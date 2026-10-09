@@ -34,24 +34,33 @@ export async function toggleFavorite(
     return { error: "请先登录后操作。" };
   }
 
-  const { data: existing } = await supabase
+  const { data: existing, error: lookupError } = await supabase
     .from("favorites")
     .select("book_id")
     .eq("user_id", user.id)
     .eq("book_id", bookId)
     .maybeSingle();
+  if (lookupError) {
+    return { error: "收藏失败，请稍后再试。" };
+  }
 
   if (existing) {
-    await supabase
+    const { error } = await supabase
       .from("favorites")
       .delete()
       .eq("user_id", user.id)
       .eq("book_id", bookId);
+    if (error) {
+      return { error: "取消收藏失败，请稍后再试。" };
+    }
   } else {
-    await supabase.from("favorites").insert({
+    const { error } = await supabase.from("favorites").insert({
       user_id: user.id,
       book_id: bookId,
     });
+    if (error) {
+      return { error: "收藏失败，请稍后再试。" };
+    }
   }
 
   const result = await requireUserData();
@@ -70,11 +79,18 @@ export async function setRating(
     return { error: "请先登录后操作。" };
   }
 
+  if (!Number.isInteger(value) || value < 1 || value > 5) {
+    return { error: "评分必须是 1-5 的整数。" };
+  }
+
   // upsert 更新分支不会触发列默认值，updated_at 需显式写入
-  await supabase.from("ratings").upsert(
+  const { error } = await supabase.from("ratings").upsert(
     { user_id: user.id, book_id: bookId, value, updated_at: new Date().toISOString() },
     { onConflict: "user_id,book_id" },
   );
+  if (error) {
+    return { error: "评分失败，请稍后再试。" };
+  }
 
   const result = await requireUserData();
   return "error" in result ? result : { data: result };
@@ -93,23 +109,32 @@ export async function saveNote(
   }
 
   const trimmed = content.trim();
-  const { data: existing } = await supabase
+  const { data: existing, error: lookupError } = await supabase
     .from("notes")
     .select("book_id")
     .eq("user_id", user.id)
     .eq("book_id", bookId)
     .maybeSingle();
+  if (lookupError) {
+    return { error: "保存失败，请稍后再试。" };
+  }
 
   const record = { user_id: user.id, book_id: bookId, content: trimmed };
 
   if (existing) {
-    await supabase
+    const { error } = await supabase
       .from("notes")
       .update({ content: trimmed })
       .eq("user_id", user.id)
       .eq("book_id", bookId);
+    if (error) {
+      return { error: "保存失败，请稍后再试。" };
+    }
   } else {
-    await supabase.from("notes").insert(record);
+    const { error } = await supabase.from("notes").insert(record);
+    if (error) {
+      return { error: "保存失败，请稍后再试。" };
+    }
   }
 
   const result = await requireUserData();

@@ -8,6 +8,12 @@ export type ShelfResult =
   | { data?: ShelfData; error?: string }
   | undefined;
 
+const shelfStatuses = new Set<ShelfStatus>([
+  "unread",
+  "reading",
+  "finished",
+]);
+
 function deriveStatus(progress: number): ShelfStatus {
   if (progress >= 100) return "finished";
   if (progress > 0) return "reading";
@@ -39,9 +45,13 @@ export async function setProgress(
     return { error: "请先登录后操作。" };
   }
 
+  if (!Number.isFinite(progressValue)) {
+    return { error: "进度必须是 0-100 之间的数字。" };
+  }
+
   const progress = Math.min(Math.max(Math.round(progressValue), 0), 100);
 
-  await supabase.from("shelf").upsert(
+  const { error } = await supabase.from("shelf").upsert(
     {
       user_id: user.id,
       book_id: bookId,
@@ -52,6 +62,9 @@ export async function setProgress(
     },
     { onConflict: "user_id,book_id" },
   );
+  if (error) {
+    return { error: "进度更新失败，请稍后再试。" };
+  }
 
   const result = await requireShelf();
   return "error" in result ? result : { data: result };
@@ -67,6 +80,10 @@ export async function setStatus(
   } = await supabase.auth.getUser();
   if (!user) {
     return { error: "请先登录后操作。" };
+  }
+
+  if (!shelfStatuses.has(status)) {
+    return { error: "无效的阅读状态。" };
   }
 
   const progress = status === "finished" ? 100 : status === "unread" ? 0 : null;
@@ -89,10 +106,13 @@ export async function setStatus(
     record.progress = progress;
   }
 
-  await supabase.from("shelf").upsert(
+  const { error } = await supabase.from("shelf").upsert(
     record,
     { onConflict: "user_id,book_id" },
   );
+  if (error) {
+    return { error: "状态更新失败，请稍后再试。" };
+  }
 
   const result = await requireShelf();
   return "error" in result ? result : { data: result };
