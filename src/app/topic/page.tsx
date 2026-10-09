@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getAuthors,
-  getBooks,
-  getSeries,
-  getUserData,
-} from "@/lib/data";
+import { getAuthors, getBooks, getSeries, getUserData } from "@/lib/data";
 import { emptyUserData, type Author, type Series } from "@/lib/types";
 
 type TopicPageProps = {
@@ -28,13 +23,14 @@ export async function generateMetadata({
 export default async function TopicPage({ searchParams }: TopicPageProps) {
   const { type, id } = await searchParams;
 
-  const supabase = await createClient();
-  const [authors, seriesList] = await Promise.all([
-    getAuthors(supabase),
-    getSeries(supabase),
+  // 目录数据（作者 / 系列 / 书单）走缓存
+  const [authors, seriesList, books] = await Promise.all([
+    getAuthors(),
+    getSeries(),
+    getBooks(),
   ]);
-  const books = await getBooks(supabase, authors, seriesList);
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

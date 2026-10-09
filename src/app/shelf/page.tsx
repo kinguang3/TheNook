@@ -1,12 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getAuthors,
-  getBooks,
-  getSeries,
-  getShelfData,
-  getUserData,
-} from "@/lib/data";
+import { getBooks, getShelfData, getUserData } from "@/lib/data";
+import type { ShelfData } from "@/lib/types";
 import { ShelfClient } from "@/components/shelf-client";
 
 export default async function ShelfPage() {
@@ -15,13 +10,13 @@ export default async function ShelfPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [authors, seriesList] = await Promise.all([
-    getAuthors(supabase),
-    getSeries(supabase),
+  const emptyShelf: ShelfData = {};
+  // 书单走缓存，书架与收藏按用户实时查
+  const [books, shelfData, userData] = await Promise.all([
+    getBooks(),
+    user ? getShelfData(supabase, user.id) : Promise.resolve(emptyShelf),
+    user ? getUserData(supabase, user.id) : Promise.resolve(null),
   ]);
-  const books = await getBooks(supabase, authors, seriesList);
-  const shelfData = user ? await getShelfData(supabase, user.id) : {};
-  const userData = user ? await getUserData(supabase, user.id) : null;
 
   return (
     <main>

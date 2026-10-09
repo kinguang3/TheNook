@@ -1,4 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import type {
   Author,
   Book,
@@ -11,46 +12,70 @@ import type {
 
 const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
 
-export async function getAuthors(
-  supabase: SupabaseClient,
-): Promise<Author[]> {
+// 目录数据（authors / series / books）是公开只读、极少变动的种子内容：
+// 用不带 Cookie 的 anon 客户端读取，并交给 unstable_cache 跨请求缓存，
+// 避免每次渲染都重复查 Supabase。用户个人数据仍走带会话的客户端按请求查。
+// 目录有更新时调用 revalidateTag("catalog") 即可失效。
+const CATALOG_CACHE = {
+  revalidate: 600,
+  tags: ["catalog"],
+};
+
+// rating_stats 由全体用户评分聚合而来，缓存窗口短一些；
+// setRating 写入后会 revalidateTag("rating-stats") 主动失效。
+const RATING_STATS_CACHE = {
+  revalidate: 300,
+  tags: ["rating-stats"],
+};
+
+function publicClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "缺少 NEXT_PUBLIC_SUPABASE_URL 或 NEXT_PUBLIC_SUPABASE_ANON_KEY 环境变量。",
+    );
+  }
+  return createClient(url, key);
+}
+
+async function fetchAuthors(): Promise<Author[]> {
+  const supabase = publicClient();
   const { data } = await supabase.from("authors").select("*");
   return (data ?? []) as Author[];
 }
 
-export async function getSeries(
-  supabase: SupabaseClient,
-): Promise<Series[]> {
+async function fetchSeries(): Promise<Series[]> {
+  const supabase = publicClient();
   const { data } = await supabase.from("series").select("*");
   return (data ?? []) as Series[];
 }
 
-export async function getBooks(
-  supabase: SupabaseClient,
+type BookRow = {
+  id: string;
+  title: string;
+  author_id: string;
+  series_id: string | null;
+  year: number;
+  read_time: string;
+  cover_tone: string;
+  cover_mark: string;
+  cover_url: string | null;
+  rating: number;
+  tags: string[];
+  blurb: string;
+  note: string;
+};
+
+function mapBookRows(
+  rows: BookRow[],
   authors: Author[],
   seriesList: Series[],
-): Promise<Book[]> {
-  const { data } = await supabase.from("books").select("*").order("year");
-  const books = (data ?? []) as Array<{
-    id: string;
-    title: string;
-    author_id: string;
-    series_id: string | null;
-    year: number;
-    read_time: string;
-    cover_tone: string;
-    cover_mark: string;
-    cover_url: string;
-    rating: number;
-    tags: string[];
-    blurb: string;
-    note: string;
-  }>;
-
+): Book[] {
   const authorMap = new Map(authors.map((author) => [author.id, author]));
   const seriesMap = new Map(seriesList.map((entry) => [entry.id, entry]));
 
-  return books.map((book) => ({
+  return rows.map((book) => ({
     id: book.id,
     title: book.title,
     authorId: book.author_id,
@@ -71,9 +96,23 @@ export async function getBooks(
   }));
 }
 
-export async function getRatingStats(
-  supabase: SupabaseClient,
-): Promise<RatingStat[]> {
+async function fetchBooks(): Promise<Book[]> {
+  const supabase = publicClient();
+  const [authorsResult, seriesResult, booksResult] = await Promise.all([
+    supabase.from("authors").select("*"),
+    supabase.from("series").select("*"),
+    supabase.from("books").select("*").order("year"),
+  ]);
+
+  return mapBookRows(
+    (booksResult.data ?? []) as BookRow[],
+    (authorsResult.data ?? []) as Author[],
+    (seriesResult.data ?? []) as Series[],
+  );
+}
+
+async function fetchRatingStats(): Promise<RatingStat[]> {
+  const supabase = publicClient();
   // rating_stats 是聚合视图（视图未在 Supabase 创建时查询失败，返回空数组回退档案评分）
   const { data, error } = await supabase
     .from("rating_stats")
@@ -85,6 +124,18 @@ export async function getRatingStats(
     ratingCount: Number(row.rating_count),
   }));
 }
+
+export const getAuthors = unstable_cache(fetchAuthors, ["catalog:authors"], CATALOG_CACHE);
+
+export const getSeries = unstable_cache(fetchSeries, ["catalog:series"], CATALOG_CACHE);
+
+export const getBooks = unstable_cache(fetchBooks, ["catalog:books"], CATALOG_CACHE);
+
+export const getRatingStats = unstable_cache(
+  fetchRatingStats,
+  ["rating-stats"],
+  RATING_STATS_CACHE,
+);
 
 export async function getUserData(
   supabase: SupabaseClient,

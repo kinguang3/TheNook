@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getAuthors, getBooks, getRatingStats, getSeries } from "@/lib/data";
+import { getAuthors, getBooks, getRatingStats } from "@/lib/data";
 import { SearchClient } from "@/components/search-client";
 
 type SearchPageProps = {
@@ -30,12 +30,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     redirect("/login");
   }
 
-  const [authors, seriesList, ratingStats] = await Promise.all([
-    getAuthors(supabase),
-    getSeries(supabase),
-    getRatingStats(supabase),
+  // 目录与评分聚合走缓存
+  const [books, authors, ratingStats] = await Promise.all([
+    getBooks(),
+    getAuthors(),
+    getRatingStats(),
   ]);
-  const books = await getBooks(supabase, authors, seriesList);
   const ratingAverages = Object.fromEntries(
     ratingStats.map((stat) => [stat.bookId, stat.avgValue]),
   );

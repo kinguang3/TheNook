@@ -1,5 +1,6 @@
 "use server";
 
+import { updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserData } from "@/lib/data";
 import type { UserData } from "@/lib/types";
@@ -91,6 +92,9 @@ export async function setRating(
   if (error) {
     return { error: "评分失败，请稍后再试。" };
   }
+
+  // 评分变化影响全站聚合分，主动失效缓存而不是等时间窗口
+  updateTag("rating-stats");
 
   const result = await requireUserData();
   return "error" in result ? result : { data: result };

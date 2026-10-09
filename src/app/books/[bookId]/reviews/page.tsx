@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
-  getAuthors,
   getBooks,
   getRatingStats,
   getReviewsByBook,
-  getSeries,
   getUserData,
 } from "@/lib/data";
 import { ReviewsClient } from "@/components/reviews-client";
@@ -19,21 +17,19 @@ export default async function BookReviewsPage(
   props: PageProps<"/books/[bookId]/reviews">,
 ) {
   const { bookId } = await props.params;
-  const supabase = await createClient();
 
-  const [authors, seriesList] = await Promise.all([
-    getAuthors(supabase),
-    getSeries(supabase),
-  ]);
-  const books = await getBooks(supabase, authors, seriesList);
+  // 书单与评分聚合走缓存
+  const books = await getBooks();
   const book = books.find((entry) => entry.id === bookId);
   if (!book) {
     notFound();
   }
 
+  const supabase = await createClient();
+  // 书评与个人数据按请求实时查
   const [reviews, ratingStats] = await Promise.all([
     getReviewsByBook(supabase, bookId),
-    getRatingStats(supabase),
+    getRatingStats(),
   ]);
   const {
     data: { user },
