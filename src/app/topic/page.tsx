@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -126,11 +127,12 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
               </p>
               <div className={`cover-block ${book.coverTone}`}>
                 {book.coverUrl ? (
-                  <img
+                  <Image
                     className="cover-image"
                     src={book.coverUrl}
                     alt={`${book.title} 封面`}
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 640px) 90vw, 300px"
                   />
                 ) : (
                   <span className="cover-mark">{book.coverMark}</span>

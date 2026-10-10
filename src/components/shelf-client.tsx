@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { setProgress, setStatus } from "@/app/actions/shelf";
 import { toggleFavorite } from "@/app/actions/user-data";
@@ -234,10 +235,11 @@ export function ShelfClient({
             <article className="shelf-row" key={book.id}>
               <div className="shelf-cover">
                 {book.coverUrl ? (
-                  <img
+                  <Image
                     src={book.coverUrl}
                     alt={`${book.title} 封面`}
-                    loading="lazy"
+                    fill
+                    sizes="44px"
                   />
                 ) : (
                   <span className="shelf-cover-mark">{book.coverMark}</span>
