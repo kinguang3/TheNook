@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Author, Book } from "@/lib/types";
@@ -176,11 +177,12 @@ export function SearchClient({
                   >
                     <div className={`cover-block ${book.coverTone}`}>
                       {book.coverUrl ? (
-                        <img
+                        <Image
                           className="cover-image"
                           src={book.coverUrl}
                           alt={`${book.title} 封面`}
-                          loading="lazy"
+                          fill
+                          sizes="72px"
                         />
                       ) : (
                         <span className="cover-mark">{book.coverMark}</span>
