@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
-import { Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import { RainLayer } from "@/components/rain-layer";
 import { RecoveryWatcher } from "@/components/recovery-watcher";
 import { Sidebar } from "@/components/sidebar";
 
+// 仅自托管拉丁字形的小字体（mono 用于 UI 标签）；
+// 中文衬线体已改为系统字体栈（见 globals.css 的 --font-serif），
+// 不再自托管 Noto Serif SC 的大量 CJK woff2 子集。
 const plexMono = IBM_Plex_Mono({
   variable: "--font-mono",
   weight: ["400", "500", "700"],
-  subsets: ["latin"],
-});
-
-const serif = Noto_Serif_SC({
-  variable: "--font-serif",
-  weight: ["400", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -32,7 +28,7 @@ export default async function RootLayout(props: LayoutProps<"/">) {
   } = await supabase.auth.getUser();
 
   return (
-    <html lang="zh-CN" className={`${plexMono.variable} ${serif.variable}`}>
+    <html lang="zh-CN" className={plexMono.variable}>
       <body>
         <RainLayer />
         <RecoveryWatcher />

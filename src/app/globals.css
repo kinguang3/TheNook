@@ -13,6 +13,11 @@
   --danger: #c97070;
   --max-width: 1100px;
   --transition: 180ms ease;
+  /* 中文衬线体走系统字体栈：不下载自托管 CJK 字体（每个访客省下数 MB），
+     按各平台内置字体择优渲染——macOS Songti SC、Windows SimSun、
+     Linux/Android Noto Serif CJK，最后回退通用 serif */
+  --font-serif: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC",
+    "Source Han Serif SC", serif;
 }
 
 * {
@@ -27,14 +32,14 @@ body {
   position: relative;
   margin: 0;
   min-height: 100vh;
-  font-family: var(--font-serif), "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: var(--font-serif);
   background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 35%),
     linear-gradient(180deg, #111214 0%, #0d0e10 100%);
   color: var(--text);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif), "Noto Serif SC", "Songti SC", serif;
+  font-family: var(--font-serif);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -416,7 +421,7 @@ body.sidebar-resizing {
   color: var(--text);
   letter-spacing: 0.05em;
   white-space: nowrap;
-  font-family: var(--font-serif), "Noto Serif SC", serif;
+  font-family: var(--font-serif);
 }
 
 .year-line {
@@ -555,7 +560,7 @@ body.sidebar-resizing {
   font-weight: 700;
   line-height: 1.35;
   color: var(--text);
-  font-family: var(--font-serif), "Noto Serif SC", serif;
+  font-family: var(--font-serif);
 }
 
 .card-title-link:hover .card-title {
