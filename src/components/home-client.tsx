@@ -142,6 +142,23 @@ export default function HomeClient({
   // Handle URL params for jump-to
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+
+    // ?focus=<bookId>：从搜索结果定位到具体书籍（搜索页「时间线」维度入口）
+    const focusId = params.get('focus')
+    if (focusId) {
+      // 目标书可能被标签筛选藏起来：先清筛选，再等 DOM 提交后定位
+      clearFilters()
+      setTimeout(() => {
+        const el = document.querySelector(`[data-book-id="${focusId}"]`)
+        if (!el) return
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.classList.add('timeline-focus')
+        setTimeout(() => el.classList.remove('timeline-focus'), 2600)
+      }, 100)
+      return
+    }
+
+    // ?year=<year>：定位到年份分组
     const yearParam = params.get('year')
     if (yearParam) {
       const year = parseInt(yearParam)
@@ -348,9 +365,9 @@ function CasebookCard({
     setFavBusy(false)
   }
 
-  return (
-    <div className="casebook-card">
-      <div className="card-cover">
+    return (
+      <div className="casebook-card" data-book-id={book.id}>
+        <div className="card-cover">
         <Link href={`/books/${book.id}/reviews`}>
           {book.coverUrl ? (
             <Image

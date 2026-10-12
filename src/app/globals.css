@@ -454,6 +454,26 @@ body.sidebar-resizing {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* 搜索定位高亮（?focus=<bookId>）：金色脉冲 2.6s，类由 JS 到时移除 */
+.timeline-focus {
+  border-color: var(--star);
+  animation: timeline-focus-pulse 2.6s ease-out 1;
+}
+
+@keyframes timeline-focus-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 184, 106, 0.5);
+  }
+
+  70% {
+    box-shadow: 0 0 0 14px rgba(212, 184, 106, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 184, 106, 0);
+  }
+}
+
 /* Cover */
 
 .card-cover {
