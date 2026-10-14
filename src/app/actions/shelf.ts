@@ -20,19 +20,6 @@ function deriveStatus(progress: number): ShelfStatus {
   return "unread";
 }
 
-async function requireShelf(): Promise<ShelfData | { error: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "请先登录后操作。" };
-  }
-
-  return getShelfData(supabase, user.id);
-}
-
 export async function setProgress(
   bookId: string,
   progressValue: number,
@@ -66,8 +53,8 @@ export async function setProgress(
     return { error: "进度更新失败，请稍后再试。" };
   }
 
-  const result = await requireShelf();
-  return "error" in result ? result : { data: result };
+  // 复用同一连接与会话：不再重复 auth.getUser()
+  return { data: await getShelfData(supabase, user.id) };
 }
 
 export async function setStatus(
@@ -114,6 +101,6 @@ export async function setStatus(
     return { error: "状态更新失败，请稍后再试。" };
   }
 
-  const result = await requireShelf();
-  return "error" in result ? result : { data: result };
+  // 复用同一连接与会话：不再重复 auth.getUser()
+  return { data: await getShelfData(supabase, user.id) };
 }

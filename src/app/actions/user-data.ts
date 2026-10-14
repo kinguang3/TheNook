@@ -9,21 +9,6 @@ export type UserDataResult =
   | { data?: UserData; error?: string }
   | undefined;
 
-async function requireUserData(): Promise<
-  UserData | { error: string }
-> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "请先登录后操作。" };
-  }
-
-  return getUserData(supabase, user.id);
-}
-
 export async function toggleFavorite(
   bookId: string,
 ): Promise<UserDataResult> {
@@ -64,8 +49,8 @@ export async function toggleFavorite(
     }
   }
 
-  const result = await requireUserData();
-  return "error" in result ? result : { data: result };
+  // 复用同一连接与会话：不再重复 auth.getUser()
+  return { data: await getUserData(supabase, user.id) };
 }
 
 export async function setRating(
@@ -96,8 +81,8 @@ export async function setRating(
   // 评分变化影响全站聚合分，主动失效缓存而不是等时间窗口
   updateTag("rating-stats");
 
-  const result = await requireUserData();
-  return "error" in result ? result : { data: result };
+  // 复用同一连接与会话：不再重复 auth.getUser()
+  return { data: await getUserData(supabase, user.id) };
 }
 
 export async function saveNote(
@@ -141,6 +126,6 @@ export async function saveNote(
     }
   }
 
-  const result = await requireUserData();
-  return "error" in result ? result : { data: result };
+  // 复用同一连接与会话：不再重复 auth.getUser()
+  return { data: await getUserData(supabase, user.id) };
 }

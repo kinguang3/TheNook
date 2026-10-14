@@ -142,38 +142,38 @@ export default function HomeClient({
   // Handle URL params for jump-to
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const timers: ReturnType<typeof setTimeout>[] = []
+    const later = (fn: () => void, ms: number) => timers.push(setTimeout(fn, ms))
 
     // ?focus=<bookId>：从搜索结果定位到具体书籍（搜索页「时间线」维度入口）
     const focusId = params.get('focus')
     if (focusId) {
-      // 目标书可能被标签筛选藏起来：先清筛选，再等 DOM 提交后定位
-      clearFilters()
-      setTimeout(() => {
+      // 目标书可能被标签筛选藏起来：有筛选时先清掉，再等 DOM 提交后定位
+      if (hasActiveFilters) clearFilters()
+      later(() => {
         const el = document.querySelector(`[data-book-id="${focusId}"]`)
         if (!el) return
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
         el.classList.add('timeline-focus')
-        setTimeout(() => el.classList.remove('timeline-focus'), 2600)
+        later(() => el.classList.remove('timeline-focus'), 2600)
       }, 100)
-      return
-    }
-
-    // ?year=<year>：定位到年份分组
-    const yearParam = params.get('year')
-    if (yearParam) {
-      const year = parseInt(yearParam)
-      if (!isNaN(year)) {
-        setTimeout(() => {
-          const el = document.getElementById(`year-${year}`)
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }, 100)
+    } else {
+      // ?year=<year>：定位到年份分组
+      const yearParam = params.get('year')
+      if (yearParam) {
+        const year = parseInt(yearParam)
+        if (!isNaN(year)) {
+          later(() => {
+            const el = document.getElementById(`year-${year}`)
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 100)
+        }
       }
     }
-  }, [])
 
-  const handleSortChange = (key: SortKey) => {
-    setSortBy(key)
-  }
+    // 卸载时清掉未触发的定时器，避免对已离开的组件操作
+    return () => timers.forEach(clearTimeout)
+  }, [])
 
   const clearFilters = () => {
     setRegionFilter('all')
@@ -261,13 +261,13 @@ export default function HomeClient({
           </span>
           <button
             className={`sort-btn ${sortBy === 'year' ? 'active' : ''}`}
-            onClick={() => handleSortChange('year')}
+            onClick={() => setSortBy('year')}
           >
             年份
           </button>
           <button
             className={`sort-btn ${sortBy === 'rating' ? 'active' : ''}`}
-            onClick={() => handleSortChange('rating')}
+            onClick={() => setSortBy('rating')}
           >
             评分
           </button>
