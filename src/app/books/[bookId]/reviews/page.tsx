@@ -9,9 +9,20 @@ import {
 } from "@/lib/data";
 import { ReviewsClient } from "@/components/reviews-client";
 
-export const metadata: Metadata = {
-  title: "书评 | Casebook Timeline",
-};
+export async function generateMetadata(
+  props: PageProps<"/books/[bookId]/reviews">,
+): Promise<Metadata> {
+  const { bookId } = await props.params;
+  const books = await getBooks();
+  const book = books.find((entry) => entry.id === bookId);
+  if (!book) {
+    return { title: "书评 | Casebook Timeline" };
+  }
+  return {
+    title: `${book.title} 的书评 | Casebook Timeline`,
+    description: `${book.authorName} · ${book.year} · ${book.blurb.slice(0, 80)}`,
+  };
+}
 
 export default async function BookReviewsPage(
   props: PageProps<"/books/[bookId]/reviews">,
