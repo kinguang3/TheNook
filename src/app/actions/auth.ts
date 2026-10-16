@@ -24,7 +24,22 @@ function siteUrl(): string {
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "Invalid login credentials": "邮箱或密码错误，请重新输入",
   "Email not confirmed": "邮箱尚未验证，请先查收验证邮件",
+  "User already registered": "该邮箱已注册，请直接登录",
+  "Email rate limit exceeded": "操作太频繁，请稍后再试",
+  "Password should be at least 6 characters": "密码至少 6 位",
+  "Signups not allowed for this instance": "本站暂未开放注册",
 };
+
+// Supabase 的部分文案带动态后缀（如 "…only request this after 47 seconds"），
+// 精确匹配不到时再用前缀/正则兜底
+function translateAuthError(message: string): string {
+  const exact = AUTH_ERROR_MESSAGES[message];
+  if (exact) return exact;
+  if (/rate limit|only request this after/i.test(message)) {
+    return "操作太频繁，请稍后再试";
+  }
+  return message;
+}
 
 export async function login(
   _previousState: AuthState,
@@ -40,7 +55,7 @@ export async function login(
   });
 
   if (error) {
-    return { error: AUTH_ERROR_MESSAGES[error.message] ?? error.message };
+    return { error: translateAuthError(error.message) };
   }
 
   redirect("/");
@@ -67,7 +82,7 @@ export async function signup(
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: translateAuthError(error.message) };
   }
 
   if (!data.session) {

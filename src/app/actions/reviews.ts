@@ -64,7 +64,6 @@ export async function createReview(
     .maybeSingle();
 
   revalidatePath(`/books/${bookId}/reviews`);
-  revalidatePath("/");
 
   return {
     review: {
@@ -113,7 +112,6 @@ export async function updateReview(
   }
 
   revalidatePath(`/books/${data.book_id}/reviews`);
-  revalidatePath("/");
 
   return {
     review: {
@@ -155,7 +153,6 @@ export async function deleteReview(
   }
 
   revalidatePath(`/books/${data.book_id}/reviews`);
-  revalidatePath("/");
 
   return { bookId: data.book_id as string };
 }

@@ -3,7 +3,7 @@
 import { updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserData } from "@/lib/data";
-import type { UserData } from "@/lib/types";
+import { NOTE_MAX_LENGTH, type UserData } from "@/lib/types";
 
 export type UserDataResult =
   | { data?: UserData; error?: string }
@@ -98,6 +98,10 @@ export async function saveNote(
   }
 
   const trimmed = content.trim();
+  if (trimmed.length > NOTE_MAX_LENGTH) {
+    return { error: `笔记最多 ${NOTE_MAX_LENGTH} 字。` };
+  }
+
   const { data: existing, error: lookupError } = await supabase
     .from("notes")
     .select("book_id")
@@ -110,7 +114,19 @@ export async function saveNote(
 
   const record = { user_id: user.id, book_id: bookId, content: trimmed };
 
-  if (existing) {
+  if (!trimmed) {
+    // 清空笔记 => 删除该行，页面回退展示档案默认 note
+    if (existing) {
+      const { error } = await supabase
+        .from("notes")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("book_id", bookId);
+      if (error) {
+        return { error: "保存失败，请稍后再试。" };
+      }
+    }
+  } else if (existing) {
     const { error } = await supabase
       .from("notes")
       .update({ content: trimmed })

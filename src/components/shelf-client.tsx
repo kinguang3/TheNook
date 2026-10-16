@@ -125,10 +125,11 @@ export function ShelfClient({
     });
 
     markBusy(book.id, true);
-    void setStatus(book.id, next).then((result) => {
-      applyServerResult(result);
-      markBusy(book.id, false);
-    });
+    void setStatus(book.id, next)
+      .then((result) => applyServerResult(result))
+      // 网络异常时保留乐观状态，避免 busy 标志永久卡住按钮
+      .catch(() => undefined)
+      .finally(() => markBusy(book.id, false));
   };
 
   const handleRemoveFromShelf = async (bookId: string) => {

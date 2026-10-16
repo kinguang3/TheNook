@@ -41,13 +41,17 @@ function publicClient() {
 
 async function fetchAuthors(): Promise<Author[]> {
   const supabase = publicClient();
-  const { data } = await supabase.from("authors").select("*");
+  const { data, error } = await supabase.from("authors").select("*");
+  // 目录查询失败必须抛出：返回空数组会被 unstable_cache 缓存住，
+  // 一次瞬时故障就会让站点空目录 10 分钟；抛错则不进缓存，由 error.tsx 兜底
+  if (error) throw new Error(`加载作者失败：${error.message}`);
   return (data ?? []) as Author[];
 }
 
 async function fetchSeries(): Promise<Series[]> {
   const supabase = publicClient();
-  const { data } = await supabase.from("series").select("*");
+  const { data, error } = await supabase.from("series").select("*");
+  if (error) throw new Error(`加载系列失败：${error.message}`);
   return (data ?? []) as Series[];
 }
 
@@ -103,6 +107,10 @@ async function fetchBooks(): Promise<Book[]> {
     supabase.from("series").select("*"),
     supabase.from("books").select("*").order("year"),
   ]);
+
+  // 同上：任一查询失败即抛出，避免把空目录写进跨请求缓存
+  const failure = authorsResult.error ?? seriesResult.error ?? booksResult.error;
+  if (failure) throw new Error(`加载书目失败：${failure.message}`);
 
   return mapBookRows(
     (booksResult.data ?? []) as BookRow[],

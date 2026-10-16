@@ -14,15 +14,32 @@ export async function generateMetadata({
   searchParams,
 }: TopicPageProps): Promise<Metadata> {
   const { type, id } = await searchParams;
+  if ((type !== "author" && type !== "series") || !id) {
+    return { title: "专题 | Casebook Timeline" };
+  }
   const label = type === "series" ? "系列" : "作者";
+  const [authors, seriesList] = await Promise.all([getAuthors(), getSeries()]);
+  const name =
+    type === "series"
+      ? seriesList.find((entry) => entry.id === id)?.name
+      : authors.find((entry) => entry.id === id)?.name;
   return {
-    title: `专题 / ${label} | Casebook Timeline`,
-    description: `查看推理小说${label}专题，浏览聚合书单与相关简介。`,
+    title: name
+      ? `${name} / ${label}专题 | Casebook Timeline`
+      : `专题 / ${label} | Casebook Timeline`,
+    description: name
+      ? `查看推理小说${label}「${name}」的聚合书单与简介。`
+      : `查看推理小说${label}专题，浏览聚合书单与相关简介。`,
   };
 }
 
 export default async function TopicPage({ searchParams }: TopicPageProps) {
   const { type, id } = await searchParams;
+
+  // 参数不合法直接 404，避免无谓的数据查询
+  if ((type !== "author" && type !== "series") || !id) {
+    notFound();
+  }
 
   // 目录数据（作者 / 系列 / 书单）走缓存
   const [authors, seriesList, books] = await Promise.all([
@@ -37,16 +54,12 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
   } = await supabase.auth.getUser();
   const userData = user ? await getUserData(supabase, user.id) : emptyUserData;
 
-  if (type !== "author" && type !== "series") {
-    notFound();
-  }
-
   const topic: Author | Series | null =
     type === "author"
       ? (authors.find((author) => author.id === id) ?? null)
       : (seriesList.find((entry) => entry.id === id) ?? null);
 
-  if (!topic || !id) {
+  if (!topic) {
     notFound();
   }
 

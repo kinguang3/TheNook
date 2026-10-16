@@ -148,8 +148,7 @@ export default function HomeClient({
     // ?focus=<bookId>：从搜索结果定位到具体书籍（搜索页「时间线」维度入口）
     const focusId = params.get('focus')
     if (focusId) {
-      // 目标书可能被标签筛选藏起来：有筛选时先清掉，再等 DOM 提交后定位
-      if (hasActiveFilters) clearFilters()
+      // 挂载时筛选必为全量（状态初值 all），无需清理，直接等 DOM 提交后定位
       later(() => {
         const el = document.querySelector(`[data-book-id="${focusId}"]`)
         if (!el) return

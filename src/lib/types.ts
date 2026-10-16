@@ -62,6 +62,8 @@ export type RatingStat = {
 
 export const REVIEW_MAX_LENGTH = 2000;
 
+export const NOTE_MAX_LENGTH = 2000;
+
 export const emptyUserData: UserData = {
   favorites: [],
   ratings: {},
