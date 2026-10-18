@@ -34,6 +34,9 @@ export type UserData = {
   notes: Record<string, string>;
 };
 
+// mutation 只回传实际变化的那一类，避免每次改动都重查 owner 的三张表
+export type UserDataPatch = Partial<UserData>;
+
 export type ShelfStatus = "unread" | "reading" | "finished";
 
 export type ShelfEntry = {

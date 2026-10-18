@@ -51,7 +51,7 @@ export function UserRating({
         return;
       }
 
-      const saved = result.data.ratings[bookId] ?? value;
+      const saved = result.data.ratings?.[bookId] ?? value;
       setRatingValue(saved);
       setSaveState({ kind: "saved", value: saved });
       fadeTimerRef.current = window.setTimeout(

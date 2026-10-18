@@ -145,25 +145,54 @@ export const getRatingStats = unstable_cache(
   RATING_STATS_CACHE,
 );
 
+export async function getFavorites(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("favorites")
+    .select("book_id")
+    .eq("user_id", userId);
+  return (data ?? []).map((row) => row.book_id);
+}
+
+export async function getRatings(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<Record<string, number>> {
+  const { data } = await supabase
+    .from("ratings")
+    .select("book_id, value")
+    .eq("user_id", userId);
+  return Object.fromEntries(
+    (data ?? []).map((row) => [row.book_id, row.value as number]),
+  );
+}
+
+export async function getNotes(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<Record<string, string>> {
+  const { data } = await supabase
+    .from("notes")
+    .select("book_id, content")
+    .eq("user_id", userId);
+  return Object.fromEntries(
+    (data ?? []).map((row) => [row.book_id, row.content as string]),
+  );
+}
+
 export async function getUserData(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<UserData> {
   const [favorites, ratings, notes] = await Promise.all([
-    supabase.from("favorites").select("book_id").eq("user_id", userId),
-    supabase.from("ratings").select("book_id, value").eq("user_id", userId),
-    supabase.from("notes").select("book_id, content").eq("user_id", userId),
+    getFavorites(supabase, userId),
+    getRatings(supabase, userId),
+    getNotes(supabase, userId),
   ]);
 
-  return {
-    favorites: (favorites.data ?? []).map((row) => row.book_id),
-    ratings: Object.fromEntries(
-      (ratings.data ?? []).map((row) => [row.book_id, row.value as number]),
-    ),
-    notes: Object.fromEntries(
-      (notes.data ?? []).map((row) => [row.book_id, row.content as string]),
-    ),
-  };
+  return { favorites, ratings, notes };
 }
 
 export async function getShelfData(

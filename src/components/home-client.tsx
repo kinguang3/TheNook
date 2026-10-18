@@ -357,11 +357,12 @@ function CasebookCard({
   const handleToggleFavorite = async () => {
     if (favBusy || !isLoggedIn) return
     setFavBusy(true)
-    const result = await toggleFavorite(book.id)
-    if (result?.data) {
-      setFavActive(result.data.favorites.includes(book.id))
+    try {
+      const favorites = (await toggleFavorite(book.id))?.data?.favorites
+      if (favorites) setFavActive(favorites.includes(book.id))
+    } finally {
+      setFavBusy(false)
     }
-    setFavBusy(false)
   }
 
     return (

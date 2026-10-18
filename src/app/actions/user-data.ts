@@ -2,11 +2,11 @@
 
 import { updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getUserData } from "@/lib/data";
-import { NOTE_MAX_LENGTH, type UserData } from "@/lib/types";
+import { getFavorites, getNotes, getRatings } from "@/lib/data";
+import { NOTE_MAX_LENGTH, type UserDataPatch } from "@/lib/types";
 
 export type UserDataResult =
-  | { data?: UserData; error?: string }
+  | { data?: UserDataPatch; error?: string }
   | undefined;
 
 export async function toggleFavorite(
@@ -49,8 +49,8 @@ export async function toggleFavorite(
     }
   }
 
-  // 复用同一连接与会话：不再重复 auth.getUser()
-  return { data: await getUserData(supabase, user.id) };
+  // 只回传发生变化的收藏列表，省掉评分 / 笔记两张表的往返
+  return { data: { favorites: await getFavorites(supabase, user.id) } };
 }
 
 export async function setRating(
@@ -81,8 +81,8 @@ export async function setRating(
   // 评分变化影响全站聚合分，主动失效缓存而不是等时间窗口
   updateTag("rating-stats");
 
-  // 复用同一连接与会话：不再重复 auth.getUser()
-  return { data: await getUserData(supabase, user.id) };
+  // 只回传评分（唯一变化的一类）
+  return { data: { ratings: await getRatings(supabase, user.id) } };
 }
 
 export async function saveNote(
@@ -142,6 +142,6 @@ export async function saveNote(
     }
   }
 
-  // 复用同一连接与会话：不再重复 auth.getUser()
-  return { data: await getUserData(supabase, user.id) };
+  // 只回传笔记（唯一变化的一类）
+  return { data: { notes: await getNotes(supabase, user.id) } };
 }

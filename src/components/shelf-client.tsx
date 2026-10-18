@@ -136,11 +136,8 @@ export function ShelfClient({
     if (!isAuthed || busy.has(bookId)) return;
     markBusy(bookId, true);
     try {
-      const result = await toggleFavorite(bookId);
-      if (result && typeof result === "object" && "data" in result) {
-        const data = result.data;
-        if (data) setFavorites(data.favorites);
-      }
+      const favorites = (await toggleFavorite(bookId))?.data?.favorites;
+      if (favorites) setFavorites(favorites);
     } finally {
       markBusy(bookId, false);
     }
