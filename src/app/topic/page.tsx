@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { getAuthors, getBooks, getSeries, getUserData } from "@/lib/data";
 import { emptyUserData, type Author, type Series } from "@/lib/types";
 
@@ -41,18 +41,14 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
     notFound();
   }
 
-  // 目录数据（作者 / 系列 / 书单）走缓存
-  const [authors, seriesList, books] = await Promise.all([
+  // 目录数据走缓存；当前用户与个人笔记一起并行取，去掉串行等待
+  const { supabase, user } = await getCurrentUser();
+  const [authors, seriesList, books, userData] = await Promise.all([
     getAuthors(),
     getSeries(),
     getBooks(),
+    user ? getUserData(supabase, user.id) : Promise.resolve(emptyUserData),
   ]);
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const userData = user ? await getUserData(supabase, user.id) : emptyUserData;
 
   const topic: Author | Series | null =
     type === "author"

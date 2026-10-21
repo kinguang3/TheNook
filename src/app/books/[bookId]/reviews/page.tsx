@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import {
   getBooks,
   getRatingStats,
@@ -36,16 +36,13 @@ export default async function BookReviewsPage(
     notFound();
   }
 
-  const supabase = await createClient();
-  // 书评与个人数据按请求实时查
-  const [reviews, ratingStats] = await Promise.all([
+  const { supabase, user } = await getCurrentUser();
+  // 书评、评分聚合与个人数据并行查
+  const [reviews, ratingStats, userData] = await Promise.all([
     getReviewsByBook(supabase, bookId),
     getRatingStats(),
+    user ? getUserData(supabase, user.id) : Promise.resolve(null),
   ]);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const userData = user ? await getUserData(supabase, user.id) : null;
   const stat = ratingStats.find((entry) => entry.bookId === bookId) ?? null;
 
   return (

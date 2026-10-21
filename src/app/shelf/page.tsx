@@ -1,14 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { getBooks, getShelfData, getUserData } from "@/lib/data";
 import type { ShelfData } from "@/lib/types";
 import { ShelfClient } from "@/components/shelf-client";
 
 export default async function ShelfPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
 
   const emptyShelf: ShelfData = {};
   // 书单走缓存，书架与收藏按用户实时查

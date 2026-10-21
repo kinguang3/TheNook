@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { RainLayer } from "@/components/rain-layer";
 import { RecoveryWatcher } from "@/components/recovery-watcher";
 import { Sidebar } from "@/components/sidebar";
@@ -22,10 +22,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout(props: LayoutProps<"/">) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getCurrentUser();
 
   return (
     <html lang="zh-CN" className={plexMono.variable}>
