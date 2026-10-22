@@ -9,6 +9,7 @@
   --accent: #c39a4a;
   --star: #c39a4a;
   --danger: #cf7d72;
+  --radius: 6px;
   --transition: 160ms ease;
   /* 中文衬线体走系统字体栈：不下载自托管 CJK 字体（每个访客省下数 MB），
      按各平台内置字体择优渲染——macOS Songti SC、Windows SimSun、
@@ -795,18 +796,19 @@ body.sidebar-resizing {
 
 .auth-input {
   width: 100%;
-  padding: 10px 0;
-  border: 0;
-  border-bottom: 1px solid var(--line-strong);
-  background: none;
+  padding: 11px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: rgba(233, 227, 214, 0.025);
   color: var(--text);
   font-size: 1rem;
   outline: none;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), background var(--transition);
 }
 
 .auth-input:focus {
-  border-bottom-color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(233, 227, 214, 0.045);
 }
 
 .auth-submit {
@@ -814,6 +816,7 @@ body.sidebar-resizing {
   margin-top: 28px;
   padding: 12px;
   border: 1px solid var(--text);
+  border-radius: var(--radius);
   background: var(--text);
   color: var(--bg);
   font-weight: 600;
