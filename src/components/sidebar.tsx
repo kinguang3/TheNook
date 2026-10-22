@@ -87,10 +87,10 @@ export function Sidebar({ userEmail }: SidebarProps) {
       />
 
       <div className="sidebar-brand">
-        <p className="eyebrow">[casebook/timeline]</p>
+        <p className="brand-kicker">推理小说档案</p>
         <Link className="wordmark" href="/" aria-label="Casebook Timeline 首页">
-          <span>CASEBOOK</span>
-          <span>TIMELINE</span>
+          <span>Casebook</span>
+          <span>Timeline</span>
         </Link>
       </div>
 
@@ -103,7 +103,6 @@ export function Sidebar({ userEmail }: SidebarProps) {
             href={item.href}
             className={`sidebar-link${isActive(item.id) ? " active" : ""}`}
           >
-            <span aria-hidden="true">{isActive(item.id) ? "[x]" : "[+]"}</span>
             {item.label}
           </Link>
         ))}
@@ -112,13 +111,12 @@ export function Sidebar({ userEmail }: SidebarProps) {
       <div className="sidebar-foot">
         {userEmail ? (
           <>
-            <p className="user-chip">[{userEmail}]</p>
+            <p className="sidebar-user">{userEmail}</p>
             <SignOutButton />
           </>
         ) : (
-          <p className="sidebar-status">[ ] 未登录</p>
+          <p className="sidebar-status">未登录</p>
         )}
-        <p className="sidebar-meta">[/static/v0.1]</p>
       </div>
     </aside>
   );

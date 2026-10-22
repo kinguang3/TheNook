@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { RainLayer } from "@/components/rain-layer";
 import { RecoveryWatcher } from "@/components/recovery-watcher";
 import { Sidebar } from "@/components/sidebar";
 
@@ -27,15 +26,14 @@ export default async function RootLayout(props: LayoutProps<"/">) {
   return (
     <html lang="zh-CN" className={plexMono.variable}>
       <body>
-        <RainLayer />
         <RecoveryWatcher />
         <div className="app-shell">
           <Sidebar userEmail={user?.email ?? null} />
           <div className="app-main">
             {props.children}
             <footer className="site-footer">
-              <p>[x] Casebook Timeline / Suspense reading log / 2026</p>
-              <p>为可读性而设计，特效只负责营造气氛。</p>
+              <p>Casebook Timeline</p>
+              <p>推理小说阅读档案，2026</p>
             </footer>
           </div>
         </div>

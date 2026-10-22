@@ -131,21 +131,19 @@ export function ReviewsClient({
   return (
     <>
       <section className="section-block book-reviews-head">
-        <p className="eyebrow">[+] Book Reviews</p>
         <h2 className="book-reviews-title">《{book.title}》</h2>
         <p className="meta-text">
-          {book.authorName} / {book.year} / {book.seriesName}
+          {book.authorName}　{book.year}　{book.seriesName}
         </p>
         <div className="reviews-rating-row">
           <div>
-            <p className="eyebrow">[+] Rating</p>
             {initialRatingStat ? (
               <>
                 <p className="rating-figure">
                   {initialRatingStat.avgValue.toFixed(1)} / 5
                 </p>
                 <p className="meta-text">
-                  读者综合评分 · {initialRatingStat.ratingCount} 人参与
+                  读者综合评分，{initialRatingStat.ratingCount} 人参与
                 </p>
               </>
             ) : book.rating > 0 ? (
@@ -190,7 +188,6 @@ export function ReviewsClient({
       <section className="section-block" aria-labelledby="reviews-list-title">
         <div className="section-head">
           <div>
-            <p className="eyebrow">[+] Reviews</p>
             <h3 id="reviews-list-title">书评（{reviews.length}）</h3>
           </div>
           <p className="meta-text">按发表时间倒序排列</p>
@@ -212,11 +209,12 @@ export function ReviewsClient({
                 >
                   <div className="review-meta-row">
                     <span className="review-author">
-                      [{isOwn ? "我" : "读者"}] {review.authorName}
+                      {review.authorName}
+                      {isOwn ? "（我）" : ""}
                     </span>
                     <span className="meta-text">
                       {formatDate(review.createdAt)}
-                      {review.updatedAt !== review.createdAt ? " · 已编辑" : ""}
+                      {review.updatedAt !== review.createdAt ? "（已编辑）" : ""}
                     </span>
                   </div>
 
@@ -242,7 +240,7 @@ export function ReviewsClient({
                             editContent.trim().length > REVIEW_MAX_LENGTH
                           }
                         >
-                          {editBusy ? "[~] 保存中" : "[x] 保存"}
+                          {editBusy ? "保存中…" : "保存"}
                         </button>
                         <button
                           type="button"
@@ -273,7 +271,7 @@ export function ReviewsClient({
                             onClick={() => handleDelete(review)}
                             disabled={deletingId === review.id}
                           >
-                            {deletingId === review.id ? "[~] 删除中" : "删除"}
+                            {deletingId === review.id ? "删除中…" : "删除"}
                           </button>
                         </div>
                       ) : null}
@@ -293,7 +291,6 @@ export function ReviewsClient({
       >
         <div className="section-head">
           <div>
-            <p className="eyebrow">[+] New Review</p>
             <h3 id="review-form-title">写下你的书评</h3>
           </div>
         </div>
@@ -319,7 +316,7 @@ export function ReviewsClient({
                 onClick={handleSubmit}
                 disabled={!canSubmit}
               >
-                {submitting ? "[~] 发表中" : "[x] 发表评论"}
+                {submitting ? "发表中…" : "发表评论"}
               </button>
             </div>
             {formError ? <p className="form-error">{formError}</p> : null}
@@ -328,7 +325,7 @@ export function ReviewsClient({
           <div className="review-gate">
             <p>请登录后发表评论。</p>
             <Link className="favorite-button" href="/login">
-              [+] 前往登录
+              前往登录
             </Link>
           </div>
         )}

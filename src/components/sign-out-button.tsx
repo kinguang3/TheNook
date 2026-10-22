@@ -6,7 +6,7 @@ export function SignOutButton() {
   return (
     <form action={signOut}>
       <button type="submit" className="button-link">
-        [x] 退出
+        退出
       </button>
     </form>
   );

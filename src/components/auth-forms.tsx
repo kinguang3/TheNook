@@ -20,7 +20,6 @@ export function LoginForm({ initialError }: { initialError?: string }) {
 
   return (
     <form action={formAction} className="auth-card">
-      <p className="eyebrow">[+] Sign In</p>
       <h1>登录</h1>
 
       <div className="auth-field">
@@ -74,7 +73,6 @@ export function SignupForm() {
 
   return (
     <form action={formAction} className="auth-card">
-      <p className="eyebrow">[+] Sign Up</p>
       <h1>注册</h1>
 
       <div className="auth-field">
@@ -126,7 +124,6 @@ export function ForgotPasswordForm() {
 
   return (
     <form action={formAction} className="auth-card">
-      <p className="eyebrow">[+] Reset Password</p>
       <h1>忘记密码</h1>
 
       <div className="auth-field">
@@ -164,7 +161,6 @@ export function ResetPasswordForm() {
 
   return (
     <form action={formAction} className="auth-card">
-      <p className="eyebrow">[+] New Password</p>
       <h1>设置新密码</h1>
 
       <div className="auth-field">

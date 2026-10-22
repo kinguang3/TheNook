@@ -4,7 +4,6 @@ export default function NotFound() {
   return (
     <main className="auth-wrap">
       <section className="section-block">
-        <p className="eyebrow">[404 / case missing]</p>
         <h1>档案不存在</h1>
         <p className="meta-text">
           这条链接指向的内容不在档案库中：可能已被移除，或链接本身有误。

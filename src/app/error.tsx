@@ -11,7 +11,6 @@ export default function ErrorBoundary({
   return (
     <main className="auth-wrap">
       <section className="section-block">
-        <p className="eyebrow">[error / case disrupted]</p>
         <h1>页面出错了</h1>
         <p className="meta-text">
           渲染这条档案时发生异常。重试一次通常就能恢复；反复出现请稍后再来。

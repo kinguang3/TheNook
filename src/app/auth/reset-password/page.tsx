@@ -21,7 +21,6 @@ export default async function ResetPasswordPage() {
     return (
       <main className="auth-wrap">
         <div className="auth-card">
-          <p className="eyebrow">[!] Invalid Link</p>
           <h1>链接无效或已过期</h1>
           <p className="auth-error" role="alert">
             {hasSessionCookie

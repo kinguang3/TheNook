@@ -20,19 +20,18 @@ export default async function ShelfPage() {
       <section className="section-block">
         <div className="section-head">
           <div>
-            <p className="eyebrow">[user/bookshelf]</p>
             <h1>用户书架</h1>
           </div>
           <p className="meta-text">
             {user
-              ? `${userData?.favorites.length ?? 0} 本已收藏 · 按阅读进度排序`
+              ? `${userData?.favorites.length ?? 0} 本已收藏，按阅读进度排序`
               : "登录后收藏书籍并记录阅读进度"}
           </p>
         </div>
 
         {!user && (
           <p className="shelf-notice">
-            [ ] 尚未登录，收藏与进度无法同步。
+            尚未登录，收藏与进度无法同步。
             <Link className="info-link" href="/login">
               去登录
             </Link>

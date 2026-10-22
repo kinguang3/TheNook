@@ -98,7 +98,6 @@ export function SearchClient({
   return (
     <>
       <section className="search-hero section-block">
-        <p className="eyebrow">[+] Global Search</p>
         <h1>档案检索</h1>
         <input
           type="search"
@@ -112,7 +111,7 @@ export function SearchClient({
         <p className="meta-text search-summary">
           {!hasKeyword
             ? "输入关键词，同时检索作者 / 书籍 / 时间线三个维度。"
-            : `共 ${totalResults} 条结果 · 关键词「${query.trim()}」`}
+            : `共 ${totalResults} 条结果，关键词「${query.trim()}」`}
         </p>
       </section>
 
@@ -121,7 +120,6 @@ export function SearchClient({
           <section className="section-block" aria-labelledby="search-authors">
             <div className="section-head">
               <div>
-                <p className="eyebrow">[+] Authors</p>
                 <h2 id="search-authors">作者</h2>
               </div>
               <p className="meta-text">{results.matchedAuthors.length} 位</p>
@@ -137,7 +135,7 @@ export function SearchClient({
                   return (
                     <Link
                       key={author.id}
-                      className="search-row search-row-author"
+                      className="search-row"
                       href={`/topic?type=author&id=${author.id}`}
                     >
                       <div className="search-row-text">
@@ -147,9 +145,6 @@ export function SearchClient({
                         </div>
                         <p className="search-row-desc">{author.summary}</p>
                       </div>
-                      <span className="search-row-go meta-text" aria-hidden="true">
-                        [→]
-                      </span>
                     </Link>
                   );
                 })}
@@ -160,7 +155,6 @@ export function SearchClient({
           <section className="section-block" aria-labelledby="search-books">
             <div className="section-head">
               <div>
-                <p className="eyebrow">[+] Books</p>
                 <h2 id="search-books">书籍</h2>
               </div>
               <p className="meta-text">{results.matchedBooks.length} 本</p>
@@ -192,27 +186,18 @@ export function SearchClient({
                       <div className="search-row-head">
                         <h3 className="search-row-title">{book.title}</h3>
                         <span className="meta-text">
-                          [{book.year}] {book.readTime} ·{" "}
+                          {book.year}　{book.readTime}　
                           {(ratingAverages[book.id] ?? book.rating) > 0
                             ? `${(ratingAverages[book.id] ?? book.rating).toFixed(1)} / 5`
                             : "暂无评分"}
                         </span>
                       </div>
                       <p className="meta-text">
-                        {book.authorName} / {book.seriesName}
+                        {book.authorName}，{book.seriesName}
                       </p>
                       <p className="search-row-desc">{book.blurb}</p>
-                      <div className="tag-pills">
-                        {book.tags.map((tag) => (
-                          <span className="tag-pill" key={tag}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="card-tags">{book.tags.join("，")}</p>
                     </div>
-                    <span className="search-row-go meta-text" aria-hidden="true">
-                      [→]
-                    </span>
                   </Link>
                 ))}
               </div>
@@ -222,7 +207,6 @@ export function SearchClient({
           <section className="section-block" aria-labelledby="search-timeline">
             <div className="section-head">
               <div>
-                <p className="eyebrow">[+] Timeline Nodes</p>
                 <h2 id="search-timeline">时间线</h2>
               </div>
               <p className="meta-text">{results.timelineItems.length} 个节点</p>
@@ -236,28 +220,19 @@ export function SearchClient({
                 {results.timelineItems.map((book) => (
                   <Link
                     key={book.id}
-                    className="search-row search-row-timeline"
+                    className="search-row"
                     href={`/?focus=${encodeURIComponent(book.id)}#timeline`}
                   >
                     <div className="search-row-text">
                       <div className="search-row-head">
                         <h3 className="search-row-title">{book.title}</h3>
                         <span className="meta-text">
-                          [{book.year}] {book.readTime}
+                          {book.year}　{book.readTime}
                         </span>
                       </div>
                       <p className="meta-text">{book.authorName}</p>
-                      <div className="tag-pills">
-                        {book.tags.map((tag) => (
-                          <span className="tag-pill" key={tag}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="card-tags">{book.tags.join("，")}</p>
                     </div>
-                    <span className="search-row-go meta-text" aria-hidden="true">
-                      [↳ 时间线]
-                    </span>
                   </Link>
                 ))}
               </div>

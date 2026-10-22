@@ -78,7 +78,6 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
   return (
     <main>
       <section className="topic-hero section-block" id="topic-hero">
-        <p className="eyebrow">[+] Topic Dossier</p>
         <h1>
           {topic.name} / {label}专题
         </h1>
@@ -122,7 +121,6 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
       >
         <div className="section-head">
           <div>
-            <p className="eyebrow">[+] Reading File</p>
             <h2 id="topic-list-title">相关书目</h2>
           </div>
           <p className="meta-text">{topicBooks.length} 条相关书目</p>
@@ -131,8 +129,8 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
         <div className="topic-grid">
           {topicBooks.map((book) => (
             <article className="topic-card" key={book.id}>
-              <p className="eyebrow">
-                [{book.year}] {book.readTime}
+              <p className="card-case">
+                {book.year}　{book.readTime}
               </p>
               <div className={`cover-block ${book.coverTone}`}>
                 {book.coverUrl ? (
@@ -149,15 +147,9 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
               </div>
               <h3>{book.title}</h3>
               <p>
-                {book.authorName} / {book.seriesName}
+                {book.authorName}，{book.seriesName}
               </p>
-              <div className="tag-pills">
-                {book.tags.map((tag) => (
-                  <span className="tag-pill" key={tag}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <p className="card-tags">{book.tags.join("，")}</p>
               <p>{userData.notes[book.id] || book.note}</p>
             </article>
           ))}

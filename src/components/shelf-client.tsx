@@ -16,12 +16,6 @@ type ShelfClientProps = {
 
 type Filter = "all" | ShelfStatus;
 
-const STATUS_MARK: Record<ShelfStatus, string> = {
-  unread: "[ ]",
-  reading: "[+]",
-  finished: "[x]",
-};
-
 const STATUS_LABEL: Record<ShelfStatus, string> = {
   unread: "未开始",
   reading: "阅读中",
@@ -217,7 +211,7 @@ export function ShelfClient({
       <div className="shelf-list">
         {rows.length === 0 ? (
           <div className="shelf-empty">
-            <p>[ ] 书架空空如也。</p>
+            <p>书架空空如也。</p>
             <p>
               {favorites.length === 0 ? (
                 <Link className="info-link" href="/#timeline">
@@ -246,7 +240,7 @@ export function ShelfClient({
 
               <div className="shelf-title">
                 <span className="shelf-book-title">{book.title}</span>
-                <span className="meta-text">— {book.authorName}</span>
+                <span className="meta-text">{book.authorName}</span>
               </div>
 
               <button
@@ -261,7 +255,7 @@ export function ShelfClient({
                 }
                 aria-label={`${book.title} 状态：${STATUS_LABEL[entry.status]}`}
               >
-                {STATUS_MARK[entry.status]}
+                {STATUS_LABEL[entry.status]}
               </button>
 
               <div
@@ -306,7 +300,7 @@ export function ShelfClient({
                 disabled={!isAuthed || busy.has(book.id)}
                 title="移出书架（取消收藏）"
               >
-                [x] 移出书架
+                移出书架
               </button>
             </article>
           ))

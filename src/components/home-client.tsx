@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Book, UserData, RatingStat } from '@/lib/types'
 import { toggleFavorite } from '@/app/actions/user-data'
-import { Typewriter } from '@/components/typewriter'
 
 type SortKey = 'year' | 'rating'
 type RegionFilter = 'all' | 'uk' | 'jp'
@@ -184,140 +183,137 @@ export default function HomeClient({
 
   return (
     <>
-      <header className="casebook-header">
-        <div className="casebook-header-text">
-          <Typewriter
-            texts={['每一本都是一场未完成的对话，等待被重新打开。', '沿着时间线，重走那些让人失眠的推理小说。']}
-            speed={80}
-            deleteSpeed={50}
-            holdMs={2200}
-          />
-          <p className="casebook-subtitle">
-            收录本格、社会派、硬核与经典欧美推理。向下滚动，时间线会持续延伸；每一个节点都记录一部值得反复回味的谜题、动机与余韵。
-          </p>
-        </div>
-
-        <div className="casebook-controls">
-          <div className="filter-group">
-            <span className="filter-label">REGION</span>
-            <div className="filter-options">
-              {regionOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={`filter-btn ${regionFilter === opt.value ? 'active' : ''}`}
-                  onClick={() => setRegionFilter(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+      <main>
+        <header className="casebook-header">
+          <div className="casebook-header-text">
+            <h1 className="casebook-title">
+              沿着时间线，
+              <br />
+              重走那些让人失眠的推理小说。
+            </h1>
+            <p className="casebook-subtitle">
+              收录本格、社会派、硬核与经典欧美推理。按出版年份排列，可筛选、可搜索，也可以收藏和评分。
+            </p>
           </div>
 
-          <div className="filter-group">
-            <span className="filter-label">ERA</span>
-            <div className="filter-options">
-              {eraOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={`filter-btn ${eraFilter === opt.value ? 'active' : ''}`}
-                  onClick={() => setEraFilter(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
+          <div className="casebook-controls">
+            <div className="filter-group">
+              <span className="filter-label">地区</span>
+              <div className="filter-options">
+                {regionOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`filter-btn ${regionFilter === opt.value ? 'active' : ''}`}
+                    onClick={() => setRegionFilter(opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="filter-group">
+              <span className="filter-label">年代</span>
+              <div className="filter-options">
+                {eraOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`filter-btn ${eraFilter === opt.value ? 'active' : ''}`}
+                    onClick={() => setEraFilter(opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-label">类型</span>
+              <div className="filter-options">
+                {typeOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`filter-btn ${typeFilter === opt.value ? 'active' : ''}`}
+                    onClick={() => setTypeFilter(opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {hasActiveFilters && (
+              <button className="clear-filters-btn" onClick={clearFilters}>
+                清除筛选
+              </button>
+            )}
           </div>
 
-          <div className="filter-group">
-            <span className="filter-label">TYPE</span>
-            <div className="filter-options">
-              {typeOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={`filter-btn ${typeFilter === opt.value ? 'active' : ''}`}
-                  onClick={() => setTypeFilter(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {hasActiveFilters && (
-            <button className="clear-filters-btn" onClick={clearFilters}>
-              清除筛选
+          <div className="casebook-meta">
+            <span className="meta-item">
+              显示 {filteredBooks.length} / {initialBooks.length} 部
+            </span>
+            <span className="meta-item">排序</span>
+            <button
+              className={`sort-btn ${sortBy === 'year' ? 'active' : ''}`}
+              onClick={() => setSortBy('year')}
+            >
+              年份
             </button>
+            <button
+              className={`sort-btn ${sortBy === 'rating' ? 'active' : ''}`}
+              onClick={() => setSortBy('rating')}
+            >
+              评分
+            </button>
+          </div>
+        </header>
+
+        <div className="casebook-timeline" id="timeline">
+          {sortBy === 'year' && booksByYear ? (
+            // Chronological view with year markers
+            Array.from(booksByYear.entries()).map(([year, books]) => (
+              <div key={year} className="year-group" id={`year-${year}`}>
+                <div className="year-rail">
+                  <span className="year-number">{year}</span>
+                </div>
+                <div className="year-books">
+                  {books.map((book) => {
+                    const caseNum = caseNumbers.get(book.id) || 0
+                    const rating = ratingMap.get(book.id)
+                    return (
+                      <CasebookCard
+                        key={book.id}
+                        book={book}
+                        caseNum={caseNum}
+                        rating={rating}
+                        userData={userData}
+                        isLoggedIn={isLoggedIn}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            ))
+          ) : (
+            // Flat list view for rating sort
+            filteredBooks.map((book) => {
+              const caseNum = caseNumbers.get(book.id) || 0
+              const rating = ratingMap.get(book.id)
+              return (
+                <CasebookCard
+                  key={book.id}
+                  book={book}
+                  caseNum={caseNum}
+                  rating={rating}
+                  userData={userData}
+                  isLoggedIn={isLoggedIn}
+                />
+              )
+            })
           )}
         </div>
-
-        <div className="casebook-meta">
-          <span className="meta-item">
-            显示 {filteredBooks.length} / {initialBooks.length} 案件
-          </span>
-          <span className="meta-divider">·</span>
-          <span className="meta-item">
-            排序
-          </span>
-          <button
-            className={`sort-btn ${sortBy === 'year' ? 'active' : ''}`}
-            onClick={() => setSortBy('year')}
-          >
-            年份
-          </button>
-          <button
-            className={`sort-btn ${sortBy === 'rating' ? 'active' : ''}`}
-            onClick={() => setSortBy('rating')}
-          >
-            评分
-          </button>
-        </div>
-      </header>
-
-      <div className="casebook-timeline">
-        {sortBy === 'year' && booksByYear ? (
-          // Chronological view with year markers
-          Array.from(booksByYear.entries()).map(([year, books]) => (
-            <div key={year} className="year-group" id={`year-${year}`}>
-              <div className="year-marker">
-                <span className="year-number">{year}</span>
-                <span className="year-line" />
-              </div>
-              <div className="year-books">
-                {books.map((book) => {
-                  const caseNum = caseNumbers.get(book.id) || 0
-                  const rating = ratingMap.get(book.id)
-                  return (
-                    <CasebookCard
-                      key={book.id}
-                      book={book}
-                      caseNum={caseNum}
-                      rating={rating}
-                      userData={userData}
-                      isLoggedIn={isLoggedIn}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          ))
-        ) : (
-          // Flat list view for rating sort
-          filteredBooks.map((book) => {
-            const caseNum = caseNumbers.get(book.id) || 0
-            const rating = ratingMap.get(book.id)
-            return (
-              <CasebookCard
-                key={book.id}
-                book={book}
-                caseNum={caseNum}
-                rating={rating}
-                userData={userData}
-                isLoggedIn={isLoggedIn}
-              />
-            )
-          })
-        )}
-      </div>
+      </main>
     </>
   )
 }
@@ -365,31 +361,28 @@ function CasebookCard({
     }
   }
 
-    return (
-      <div className="casebook-card" data-book-id={book.id}>
-        <div className="card-cover">
+  return (
+    <div className="casebook-card" data-book-id={book.id}>
+      <div className="card-cover">
         <Link href={`/books/${book.id}/reviews`}>
           {book.coverUrl ? (
             <Image
               src={book.coverUrl}
               alt={book.title}
               fill
-              sizes="160px"
+              sizes="130px"
               className="cover-image"
             />
           ) : (
-            <div className={`cover-placeholder cover-${book.coverTone}`}>
+            <div className={`cover-placeholder ${book.coverTone}`}>
               <span className="cover-mark">{book.coverMark}</span>
             </div>
           )}
         </Link>
-        <div className="card-case-badge">
-          <span className="case-label">CASE</span>
-          <span className="case-value">{String(caseNum).padStart(3, '0')}</span>
-        </div>
       </div>
 
       <div className="card-content">
+        <p className="card-case">CASE {String(caseNum).padStart(3, '0')}</p>
         <div className="card-head">
           <Link href={`/books/${book.id}/reviews`} className="card-title-link">
             <h3 className="card-title">{book.title}</h3>
@@ -400,22 +393,14 @@ function CasebookCard({
         </div>
 
         <div className="card-meta-row">
-          <span className="meta-author">{book.authorName}</span>
-          <span className="meta-dot">·</span>
-          <span className="meta-year">{book.year}</span>
-          <span className="meta-dot">·</span>
-          <span className="meta-readtime">{book.readTime}</span>
+          <span>{book.authorName}</span>
+          <span>{book.year}</span>
+          <span>{book.readTime}</span>
         </div>
 
         <p className="card-blurb">{book.blurb}</p>
 
-        <div className="card-tags">
-          {book.tags.slice(0, 4).map((tag) => (
-            <span key={tag} className="tag-chip">
-              {tag}
-            </span>
-          ))}
-        </div>
+        <p className="card-tags">{book.tags.slice(0, 4).join('，')}</p>
 
         <div className="card-footer">
           <div className="card-rating">

@@ -67,11 +67,10 @@ export function UserRating({
   if (!isAuthed) {
     return (
       <div className="user-rating">
-        <p className="eyebrow">[+] Your Rating</p>
         <p className="meta-text user-rating-hint">
-          登录后即可评分 ·{" "}
+          登录后即可评分，{" "}
           <Link className="info-link" href="/login">
-            [+] 前往登录
+            前往登录
           </Link>
         </p>
       </div>
@@ -79,12 +78,11 @@ export function UserRating({
   }
 
   let hintText = rating ? "点击修改评分" : "点击评分";
-  if (saveState.kind === "saving") hintText = "[~] 保存中";
-  if (saveState.kind === "saved") hintText = `✓ 已保存 · ${saveState.value} / 5`;
+  if (saveState.kind === "saving") hintText = "保存中…";
+  if (saveState.kind === "saved") hintText = `已保存 ${saveState.value} / 5`;
 
   return (
     <div className="user-rating">
-      <p className="eyebrow">[+] Your Rating</p>
       <div
         className="user-rating-row"
         onMouseLeave={() => setPreview(0)}
