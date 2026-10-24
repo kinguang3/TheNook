@@ -35,20 +35,23 @@ export async function GET(request: NextRequest) {
   const pending: PendingCookie[] = [];
 
   if (code) {
-    // verifier 双通道：优先取链接自带的 nk（跨设备点击时 cookie 不存在），
-    // 其次取自持 cookie（同设备兜底）。auth-js 读不到自己那份时，
-    // 用选定值合成它要求的 legacy cookie（仅当真实 legacy 缺失才注入，
-    // 避免干扰验证码/注册流程）
+    // verifier 优先级：链接自带的 nk（忘记密码）> auth-js 自己的 legacy
+    // cookie（注册/魔法链接）> 自持 cookie（忘记密码兜底）。自持 cookie
+    // 只在 auth-js 完全没有 verifier 时才用，且 nk 需要覆盖残留的
+    // legacy（否则会拿注册的 verifier 去兑换重置码）
     let verifier: string | null = null;
-    let fromCookie = false;
+    let fromLink = false;
+    const legacyVerifier = request.cookies.get(LEGACY_VERIFIER_COOKIE)?.value;
     const nk = searchParams.get("nk");
     if (nk && /^[A-Za-z0-9_-]{43,128}$/.test(nk)) {
       verifier = nk;
-    } else {
+      fromLink = true;
+    } else if (!legacyVerifier) {
+      // 仅当 auth-js 自己没有 verifier 时才用自持 cookie，避免把
+      // 早先忘记密码留下的 verifier 套到注册/魔法链接的兑换上
       const nook = request.cookies.get(NOOK_PKCE_COOKIE)?.value;
       if (nook && /^[A-Za-z0-9_-]{43,128}$/.test(nook)) {
         verifier = nook;
-        fromCookie = true;
       }
     }
 
@@ -59,19 +62,17 @@ export async function GET(request: NextRequest) {
         cookies: {
           getAll() {
             const base = request.cookies.getAll();
-            if (
-              verifier &&
-              !base.some((c) => c.name === LEGACY_VERIFIER_COOKIE)
-            ) {
-              return [
-                ...base,
-                {
-                  name: LEGACY_VERIFIER_COOKIE,
-                  value: JSON.stringify(`${verifier}/recovery`),
-                },
-              ];
-            }
-            return base;
+            if (!verifier) return base;
+            // 链接自带 nk 时以它为准（覆盖可能残留的旧 verifier）；
+            // 否则只在 auth-js 完全没有 verifier 时补位
+            if (!fromLink && legacyVerifier) return base;
+            return [
+              ...base.filter((c) => c.name !== LEGACY_VERIFIER_COOKIE),
+              {
+                name: LEGACY_VERIFIER_COOKIE,
+                value: JSON.stringify(`${verifier}/recovery`),
+              },
+            ];
           },
           setAll(cookiesToSet) {
             for (const { name, value, options } of cookiesToSet) {
@@ -89,20 +90,19 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      if (fromCookie) {
-        // 只清 cookie 通道的 verifier；nk 来源时 cookie 可能属于另一个待用流程
-        pending.push({
-          name: NOOK_PKCE_COOKIE,
-          value: "",
-          options: {
-            path: "/",
-            maxAge: 0,
-            httpOnly: true,
-            sameSite: "lax",
-            secure: true,
-          },
-        });
-      }
+      // 兑换成功后自持 verifier 已无用（下一次忘记密码会重新生成），
+      // 无论来自链接还是 cookie 都清掉，避免残留值干扰后续注册/魔法链接
+      pending.push({
+        name: NOOK_PKCE_COOKIE,
+        value: "",
+        options: {
+          path: "/",
+          maxAge: 0,
+          httpOnly: true,
+          sameSite: "lax",
+          secure: true,
+        },
+      });
       // 重置密码链接：verifier 带 recovery 标记，必须去设置新密码页
       // （运行时返回 redirectType，类型声明尚未暴露）
       const redirectType = (data as { redirectType?: string } | null)

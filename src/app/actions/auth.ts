@@ -41,6 +41,54 @@ function translateAuthError(message: string): string {
   return message;
 }
 
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+function isAlreadyRegistered(message: string, code?: string): boolean {
+  return (
+    code === "user_already_exists" ||
+    code === "email_exists" ||
+    /already registered|already exists/i.test(message)
+  );
+}
+
+// 同邮箱重复注册时 GoTrue 不会重发确认邮件（开启邮箱确认时还会返回
+// identities 为空的混淆用户），这里显式补发；已确认的账号会被拒绝，
+// 引导其直接登录。
+async function resendSignupEmail(
+  supabase: ServerClient,
+  email: string,
+  emailRedirectTo: string,
+): Promise<AuthState> {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo },
+  });
+
+  if (!error) {
+    // GoTrue 对不存在/已确认的邮箱同样返回 200 且不发信（防枚举），
+    // 所以文案不能一口咬定“已发送”
+    return {
+      message:
+        "如果该邮箱尚未完成验证，新的验证邮件已发送，请查收后再登录；若已完成验证，请直接登录。",
+    };
+  }
+  if (
+    isAlreadyRegistered(error.message) ||
+    /already confirmed/i.test(error.message)
+  ) {
+    return { error: "该邮箱已注册并完成验证，请直接登录；忘记密码可点「忘记密码」。" };
+  }
+  if (
+    error.code === "over_email_send_rate_limit" ||
+    /rate limit|only request this after/i.test(error.message)
+  ) {
+    // 上一封大概率已经发出，不要吓用户说“失败”
+    return { message: "验证邮件刚刚发送过，请稍后查收（含垃圾邮件箱）。" };
+  }
+  return { error: translateAuthError(error.message) };
+}
+
 export async function login(
   _previousState: AuthState,
   formData: FormData,
@@ -55,6 +103,20 @@ export async function login(
   });
 
   if (error) {
+    // 凭据正确但邮箱未验证：顺手补发确认邮件，并用中性提示替代红字
+    if (
+      error.code === "email_not_confirmed" ||
+      /email not confirmed/i.test(error.message)
+    ) {
+      const resent = await resendSignupEmail(
+        supabase,
+        email,
+        `${siteUrl()}/auth/callback`,
+      );
+      return resent.error
+        ? { message: "邮箱尚未验证，请先查收验证邮件；如未收到，请稍后重试。" }
+        : resent;
+    }
     return { error: translateAuthError(error.message) };
   }
 
@@ -73,16 +135,23 @@ export async function signup(
   }
 
   const supabase = await createClient();
+  const emailRedirectTo = `${siteUrl()}/auth/callback`;
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo: `${siteUrl()}/auth/callback`,
-    },
+    options: { emailRedirectTo },
   });
 
   if (error) {
+    if (isAlreadyRegistered(error.message, error.code)) {
+      return resendSignupEmail(supabase, email, emailRedirectTo);
+    }
     return { error: translateAuthError(error.message) };
+  }
+
+  // identities 为空 = 邮箱已存在（GoTrue 的防枚举混淆用户），signUp 不会发信
+  if (data.user && (data.user.identities?.length ?? 0) === 0) {
+    return resendSignupEmail(supabase, email, emailRedirectTo);
   }
 
   if (!data.session) {
