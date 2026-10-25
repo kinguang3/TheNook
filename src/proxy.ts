@@ -25,7 +25,10 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  // 官方 Next.js SSR 集成推荐用 getClaims：校验 JWT 的同时顺带刷新过期会话
+  // （非对称签名下本地验签，对称密钥时自动回退 getUser）。这里只取刷新副作用，
+  // 用户身份仍由页面自己的 getCurrentUser() 获取。
+  await supabase.auth.getClaims();
 
   return response;
 }

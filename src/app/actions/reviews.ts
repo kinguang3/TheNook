@@ -39,7 +39,8 @@ export async function createReview(
     return { error: invalid };
   }
 
-  // 身份取自服务端 Session，不信任前端传入的 user_id
+  // 身份取自服务端 Session，不信任前端传入的 user_id；
+  // 顺带 return 里嵌入 profiles，省掉插入后再查一次昵称的往返
   const { data, error } = await supabase
     .from("reviews")
     .insert({
@@ -47,7 +48,9 @@ export async function createReview(
       user_id: user.id,
       content: content.trim(),
     })
-    .select("id, book_id, user_id, content, created_at, updated_at")
+    .select(
+      "id, book_id, user_id, content, created_at, updated_at, profiles(display_name)",
+    )
     .single();
 
   if (error) {
@@ -57,11 +60,9 @@ export async function createReview(
     return { error: "发表失败，请稍后再试。" };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", user.id)
-    .maybeSingle();
+  const profile = (
+    data as unknown as { profiles: { display_name: string } | null }
+  ).profiles;
 
   revalidatePath(`/books/${bookId}/reviews`);
 
@@ -101,7 +102,9 @@ export async function updateReview(
     .update({ content: content.trim(), updated_at: new Date().toISOString() })
     .eq("id", reviewId)
     .eq("user_id", user.id)
-    .select("id, book_id, user_id, content, created_at, updated_at")
+    .select(
+      "id, book_id, user_id, content, created_at, updated_at, profiles(display_name)",
+    )
     .maybeSingle();
 
   if (error) {
@@ -113,6 +116,10 @@ export async function updateReview(
 
   revalidatePath(`/books/${data.book_id}/reviews`);
 
+  const profile = (
+    data as unknown as { profiles: { display_name: string } | null }
+  ).profiles;
+
   return {
     review: {
       id: data.id as string,
@@ -121,7 +128,7 @@ export async function updateReview(
       content: data.content as string,
       createdAt: data.created_at as string,
       updatedAt: data.updated_at as string,
-      authorName: "匿名侦探",
+      authorName: profile?.display_name ?? "匿名侦探",
     },
   };
 }

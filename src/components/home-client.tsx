@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { Book, UserData, RatingStat } from '@/lib/types'
+import type { Book, RatingStat } from '@/lib/types'
 import { toggleFavorite } from '@/app/actions/user-data'
 
 type SortKey = 'year' | 'rating'
@@ -37,14 +37,14 @@ const typeOptions: { value: TypeFilter; label: string; field: 'TYPE' }[] = [
 
 interface HomeClientProps {
   initialBooks: Book[]
-  userData?: UserData
+  favorites?: string[]
   ratingStats: RatingStat[]
   isLoggedIn: boolean
 }
 
 export default function HomeClient({
   initialBooks,
-  userData,
+  favorites,
   ratingStats,
   isLoggedIn,
 }: HomeClientProps) {
@@ -287,7 +287,7 @@ export default function HomeClient({
                         book={book}
                         caseNum={caseNum}
                         rating={rating}
-                        userData={userData}
+                        favorites={favorites}
                         isLoggedIn={isLoggedIn}
                       />
                     )
@@ -306,7 +306,7 @@ export default function HomeClient({
                   book={book}
                   caseNum={caseNum}
                   rating={rating}
-                  userData={userData}
+                  favorites={favorites}
                   isLoggedIn={isLoggedIn}
                 />
               )
@@ -330,7 +330,7 @@ interface CasebookCardProps {
   book: Book
   caseNum: number
   rating?: { avg: number; count: number }
-  userData?: UserData
+  favorites?: string[]
   isLoggedIn: boolean
 }
 
@@ -338,12 +338,12 @@ function CasebookCard({
   book,
   caseNum,
   rating,
-  userData,
+  favorites,
   isLoggedIn,
 }: CasebookCardProps) {
   const avgRating = rating?.avg ?? 0
   const ratingCount = rating?.count ?? 0
-  const isFavorite = userData?.favorites.includes(book.id) ?? false
+  const isFavorite = favorites?.includes(book.id) ?? false
   const [favActive, setFavActive] = useState(isFavorite)
   const [favBusy, setFavBusy] = useState(false)
 

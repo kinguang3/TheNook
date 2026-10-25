@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { Author, Book } from "@/lib/types";
 
 type SearchClientProps = {
@@ -25,35 +24,39 @@ export function SearchClient({
   initialQuery,
   ratingAverages,
 }: SearchClientProps) {
-  const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
-  // 记录最近一次由本组件写入 URL 的关键词，用于识别过期的 RSC 响应
-  const replacedRef = useRef(initialQuery);
 
-  // 刷新 / 直接访问 /search?q=xxx / 浏览器前进后退时保留关键词
+  // 刷新 / 直接访问 / 浏览器前进后退时保留关键词
   useEffect(() => {
-    if (initialQuery !== replacedRef.current) {
-      replacedRef.current = initialQuery;
-      setQuery(initialQuery);
-    }
+    setQuery(initialQuery);
   }, [initialQuery]);
 
-  // 轻量 debounce 后 router.replace 同步 URL，不产生历史记录
+  // 轻量 debounce 后直接改写 URL：搜索是纯客户端过滤，
+  // 用 router.replace 会让每次停顿都触发一次 RSC 往返、重渲染整页
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const current = new URLSearchParams(window.location.search).get("q") ?? "";
       if (current === query) return;
-      replacedRef.current = query;
-      router.replace(
+      window.history.replaceState(
+        null,
+        "",
         query ? `/search?q=${encodeURIComponent(query)}` : "/search",
-        { scroll: false },
       );
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [query, router]);
+  }, [query]);
 
   const keyword = normalize(query);
   const hasKeyword = keyword.length > 0;
+
+  // 作者书目数用一次遍历预聚合，避免每个作者都重新扫一遍全部书籍
+  const bookCountByAuthor = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const book of books) {
+      counts.set(book.authorId, (counts.get(book.authorId) ?? 0) + 1);
+    }
+    return counts;
+  }, [books]);
 
   const results = useMemo(() => {
     if (!hasKeyword) return null;
@@ -129,9 +132,7 @@ export function SearchClient({
             ) : (
               <div className="search-list">
                 {results.matchedAuthors.map((author) => {
-                  const bookCount = books.filter(
-                    (book) => book.authorId === author.id,
-                  ).length;
+                  const bookCount = bookCountByAuthor.get(author.id) ?? 0;
                   return (
                     <Link
                       key={author.id}

@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { getAuthors, getBooks, getSeries, getUserData } from "@/lib/data";
-import { emptyUserData, type Author, type Series } from "@/lib/types";
+import { getAuthors, getBooks, getNotes, getSeries } from "@/lib/data";
+import type { Author, Series } from "@/lib/types";
 
 type TopicPageProps = {
   searchParams: Promise<{ type?: string; id?: string }>;
@@ -43,17 +43,23 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
 
   // 目录数据走缓存；当前用户与个人笔记一起并行取，去掉串行等待
   const { supabase, user } = await getCurrentUser();
-  const [authors, seriesList, books, userData] = await Promise.all([
+  const [authors, seriesList, books, notes] = await Promise.all([
     getAuthors(),
     getSeries(),
     getBooks(),
-    user ? getUserData(supabase, user.id) : Promise.resolve(emptyUserData),
+    user
+      ? getNotes(supabase, user.id)
+      : Promise.resolve<Record<string, string>>({}),
   ]);
+
+  // 主题、关联系列/作者都要反复按 id 查，先建 Map 避免多次线性扫描
+  const authorsById = new Map(authors.map((author) => [author.id, author]));
+  const seriesById = new Map(seriesList.map((entry) => [entry.id, entry]));
 
   const topic: Author | Series | null =
     type === "author"
-      ? (authors.find((author) => author.id === id) ?? null)
-      : (seriesList.find((entry) => entry.id === id) ?? null);
+      ? (authorsById.get(id) ?? null)
+      : (seriesById.get(id) ?? null);
 
   if (!topic) {
     notFound();
@@ -68,7 +74,13 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
   const label = type === "author" ? "作者" : "系列";
 
   const relatedSeries = type === "author"
-    ? [...new Set(topicBooks.map((book) => book.seriesId).filter(Boolean))]
+    ? [
+        ...new Set(
+          topicBooks
+            .map((book) => book.seriesId)
+            .filter((seriesId): seriesId is string => Boolean(seriesId)),
+        ),
+      ]
     : [];
   const relatedAuthors =
     type === "series"
@@ -85,7 +97,7 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
         <div className="topic-links">
           {type === "author" &&
             relatedSeries.map((seriesId) => {
-              const entry = seriesList.find((item) => item.id === seriesId);
+              const entry = seriesById.get(seriesId);
               if (!entry) return null;
               return (
                 <Link
@@ -99,7 +111,7 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
             })}
           {type === "series" &&
             relatedAuthors.map((authorId) => {
-              const entry = authors.find((item) => item.id === authorId);
+              const entry = authorsById.get(authorId);
               if (!entry) return null;
               return (
                 <Link
@@ -150,7 +162,7 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
                 {book.authorName}，{book.seriesName}
               </p>
               <p className="card-tags">{book.tags.join("，")}</p>
-              <p>{userData.notes[book.id] || book.note}</p>
+              <p>{notes[book.id] || book.note}</p>
             </article>
           ))}
         </div>

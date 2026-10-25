@@ -7,7 +7,6 @@ import type {
   Review,
   Series,
   ShelfData,
-  UserData,
 } from "@/lib/types";
 
 const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
@@ -182,17 +181,19 @@ export async function getNotes(
   );
 }
 
-export async function getUserData(
+// 书评页只需要当前这本书的评分：单行查询比拉回全部评分再挑一本更省流量
+export async function getRatingForBook(
   supabase: SupabaseClient,
   userId: string,
-): Promise<UserData> {
-  const [favorites, ratings, notes] = await Promise.all([
-    getFavorites(supabase, userId),
-    getRatings(supabase, userId),
-    getNotes(supabase, userId),
-  ]);
-
-  return { favorites, ratings, notes };
+  bookId: string,
+): Promise<number | null> {
+  const { data } = await supabase
+    .from("ratings")
+    .select("value")
+    .eq("user_id", userId)
+    .eq("book_id", bookId)
+    .maybeSingle();
+  return (data?.value as number | undefined) ?? null;
 }
 
 export async function getShelfData(

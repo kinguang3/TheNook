@@ -26,6 +26,12 @@ export default async function RootLayout(props: LayoutProps<"/">) {
   return (
     <html lang="zh-CN" className={plexMono.variable}>
       <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var w=Number(localStorage.getItem("sidebar-width"));if(w>=160&&w<=440)document.documentElement.style.setProperty("--sidebar-w",w+"px")}catch(e){}',
+          }}
+        />
         <RecoveryWatcher />
         <div className="app-shell">
           <Sidebar userEmail={user?.email ?? null} />

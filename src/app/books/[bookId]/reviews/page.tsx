@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/server";
 import {
   getBooks,
+  getRatingForBook,
   getRatingStats,
   getReviewsByBook,
-  getUserData,
 } from "@/lib/data";
 import { ReviewsClient } from "@/components/reviews-client";
 
@@ -37,11 +37,11 @@ export default async function BookReviewsPage(
   }
 
   const { supabase, user } = await getCurrentUser();
-  // 书评、评分聚合与个人数据并行查
-  const [reviews, ratingStats, userData] = await Promise.all([
+  // 书评、评分聚合与「当前这本书」的个人评分并行查
+  const [reviews, ratingStats, initialUserRating] = await Promise.all([
     getReviewsByBook(supabase, bookId),
     getRatingStats(),
-    user ? getUserData(supabase, user.id) : Promise.resolve(null),
+    user ? getRatingForBook(supabase, user.id, bookId) : Promise.resolve(null),
   ]);
   const stat = ratingStats.find((entry) => entry.bookId === bookId) ?? null;
 
@@ -51,7 +51,7 @@ export default async function BookReviewsPage(
         book={book}
         initialReviews={reviews}
         currentUserId={user?.id ?? null}
-        initialUserRating={userData?.ratings[bookId] ?? null}
+        initialUserRating={initialUserRating}
         initialRatingStat={
           stat && stat.ratingCount > 0
             ? { avgValue: stat.avgValue, ratingCount: stat.ratingCount }

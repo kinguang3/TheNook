@@ -27,18 +27,27 @@ const NAV_ITEMS: {
 
 export function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname();
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-
-  useEffect(() => {
-    const saved = Number(localStorage.getItem("sidebar-width"));
-    if (Number.isFinite(saved) && saved >= MIN_WIDTH && saved <= MAX_WIDTH) {
-      setWidth(saved);
+  // 初始值直接读 localStorage（SSR 时回到默认值，且不参与渲染输出），
+  // 避免先渲染 240px 再在 effect 里改成保存值造成的首屏跳动
+  const [width, setWidth] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_WIDTH;
+    try {
+      const saved = Number(window.localStorage.getItem("sidebar-width"));
+      return Number.isFinite(saved) && saved >= MIN_WIDTH && saved <= MAX_WIDTH
+        ? saved
+        : DEFAULT_WIDTH;
+    } catch {
+      return DEFAULT_WIDTH;
     }
-  }, []);
+  });
 
   useEffect(() => {
     document.documentElement.style.setProperty("--sidebar-w", `${width}px`);
-    localStorage.setItem("sidebar-width", String(width));
+    try {
+      localStorage.setItem("sidebar-width", String(width));
+    } catch {
+      // 隐私模式等禁用存储时忽略，宽度仍对当前页面生效
+    }
   }, [width]);
 
   const handleResizeStart = useCallback((event: React.PointerEvent) => {
