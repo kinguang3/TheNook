@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Book, RatingStat } from '@/lib/types'
@@ -52,6 +52,7 @@ export default function HomeClient({
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all')
   const [eraFilter, setEraFilter] = useState<EraFilter>('all')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
+  const timelineRef = useRef<HTMLDivElement>(null)
 
   const ratingMap = useMemo(() => {
     const map = new Map<string, { avg: number; count: number }>()
@@ -173,6 +174,39 @@ export default function HomeClient({
     return () => timers.forEach(clearTimeout)
   }, [])
 
+  // 时间线「阅读光束」（参考 Aceternity tracing-beam）：滚动时把进度写入 CSS 变量，
+  // 由 CSS 用 scaleY 画一条从顶部延伸的金线；不引入 framer-motion，rAF 节流单帧更新。
+  useEffect(() => {
+    const el = timelineRef.current
+    if (!el) return
+
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const rect = el.getBoundingClientRect()
+      if (rect.height <= 0) return
+      const readingLine = window.innerHeight * 0.55
+      const progress = Math.min(
+        1,
+        Math.max(0, (readingLine - rect.top) / rect.height),
+      )
+      el.style.setProperty('--beam-progress', progress.toFixed(4))
+    }
+    const schedule = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    return () => {
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [sortBy, filteredBooks.length])
+
   const clearFilters = () => {
     setRegionFilter('all')
     setEraFilter('all')
@@ -269,7 +303,12 @@ export default function HomeClient({
           </div>
         </header>
 
-        <div className="casebook-timeline" id="timeline">
+        <div ref={timelineRef} className="casebook-timeline" id="timeline">
+          {sortBy === 'year' && (
+            <div className="timeline-beam" aria-hidden="true">
+              <span className="timeline-beam-fill" />
+            </div>
+          )}
           {sortBy === 'year' && booksByYear ? (
             // Chronological view with year markers
             Array.from(booksByYear.entries()).map(([year, books]) => (
