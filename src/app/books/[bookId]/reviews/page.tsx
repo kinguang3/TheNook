@@ -39,7 +39,7 @@ export default async function BookReviewsPage(
   const { supabase, user } = await getCurrentUser();
   // 书评、评分聚合与「当前这本书」的个人评分并行查
   const [reviews, ratingStats, initialUserRating] = await Promise.all([
-    getReviewsByBook(supabase, bookId),
+    getReviewsByBook(bookId),
     getRatingStats(),
     user ? getRatingForBook(supabase, user.id, bookId) : Promise.resolve(null),
   ]);

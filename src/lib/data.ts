@@ -27,6 +27,13 @@ const RATING_STATS_CACHE = {
   tags: ["rating-stats"],
 };
 
+// 书评是公开只读数据：用匿名客户端跨请求缓存；
+// create / update / delete 后调 updateTag("reviews") 立即失效。
+const REVIEWS_CACHE = {
+  revalidate: 300,
+  tags: ["reviews"],
+};
+
 function publicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -232,17 +239,18 @@ function toAuthorName(row: ReviewRow): string {
   return row.profiles?.display_name ?? "匿名侦探";
 }
 
-export async function getReviewsByBook(
-  supabase: SupabaseClient,
-  bookId: string,
-): Promise<Review[]> {
-  const { data } = await supabase
+async function fetchReviews(bookId: string): Promise<Review[]> {
+  const supabase = publicClient();
+  const { data, error } = await supabase
     .from("reviews")
     .select(
       "id, book_id, user_id, content, created_at, updated_at, profiles(display_name)",
     )
     .eq("book_id", bookId)
     .order("created_at", { ascending: false });
+
+  // 同目录缓存：出错必须抛，避免把空书评缓存满整个窗口
+  if (error) throw new Error(`加载书评失败：${error.message}`);
 
   return ((data ?? []) as unknown as ReviewRow[]).map((row) => ({
     id: row.id,
@@ -254,3 +262,9 @@ export async function getReviewsByBook(
     authorName: toAuthorName(row),
   }));
 }
+
+export const getReviewsByBook = unstable_cache(
+  fetchReviews,
+  ["reviews"],
+  REVIEWS_CACHE,
+);

@@ -111,6 +111,7 @@ export function Sidebar({ userEmail }: SidebarProps) {
             key={item.id}
             href={item.href}
             className={`sidebar-link${isActive(item.id) ? " active" : ""}`}
+            aria-current={isActive(item.id) ? "page" : undefined}
           >
             {item.label}
           </Link>

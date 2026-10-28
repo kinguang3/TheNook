@@ -238,6 +238,7 @@ export default function HomeClient({
                   <button
                     key={opt.value}
                     className={`filter-btn ${regionFilter === opt.value ? 'active' : ''}`}
+                    aria-pressed={regionFilter === opt.value}
                     onClick={() => setRegionFilter(opt.value)}
                   >
                     {opt.label}
@@ -253,6 +254,7 @@ export default function HomeClient({
                   <button
                     key={opt.value}
                     className={`filter-btn ${eraFilter === opt.value ? 'active' : ''}`}
+                    aria-pressed={eraFilter === opt.value}
                     onClick={() => setEraFilter(opt.value)}
                   >
                     {opt.label}
@@ -268,6 +270,7 @@ export default function HomeClient({
                   <button
                     key={opt.value}
                     className={`filter-btn ${typeFilter === opt.value ? 'active' : ''}`}
+                    aria-pressed={typeFilter === opt.value}
                     onClick={() => setTypeFilter(opt.value)}
                   >
                     {opt.label}
@@ -290,12 +293,14 @@ export default function HomeClient({
             <span className="meta-item">排序</span>
             <button
               className={`sort-btn ${sortBy === 'year' ? 'active' : ''}`}
+              aria-pressed={sortBy === 'year'}
               onClick={() => setSortBy('year')}
             >
               年份
             </button>
             <button
               className={`sort-btn ${sortBy === 'rating' ? 'active' : ''}`}
+              aria-pressed={sortBy === 'rating'}
               onClick={() => setSortBy('rating')}
             >
               评分
@@ -409,7 +414,7 @@ function CasebookCard({
               src={book.coverUrl}
               alt={book.title}
               fill
-              sizes="130px"
+              sizes="(max-width: 640px) 84px, 104px"
               className="cover-image"
             />
           ) : (

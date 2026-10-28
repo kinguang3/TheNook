@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { REVIEW_MAX_LENGTH } from "@/lib/types";
 import type { Review } from "@/lib/types";
@@ -64,6 +64,7 @@ export async function createReview(
     data as unknown as { profiles: { display_name: string } | null }
   ).profiles;
 
+  updateTag("reviews");
   revalidatePath(`/books/${bookId}/reviews`);
 
   return {
@@ -114,6 +115,7 @@ export async function updateReview(
     return { error: "评论不存在或无权修改。" };
   }
 
+  updateTag("reviews");
   revalidatePath(`/books/${data.book_id}/reviews`);
 
   const profile = (
@@ -159,6 +161,7 @@ export async function deleteReview(
     return { error: "评论不存在或无权删除。" };
   }
 
+  updateTag("reviews");
   revalidatePath(`/books/${data.book_id}/reviews`);
 
   return { bookId: data.book_id as string };

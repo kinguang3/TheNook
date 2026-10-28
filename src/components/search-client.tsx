@@ -177,7 +177,7 @@ export function SearchClient({
                           src={book.coverUrl}
                           alt={`${book.title} 封面`}
                           fill
-                          sizes="72px"
+                          sizes="(max-width: 640px) 72px, 64px"
                         />
                       ) : (
                         <span className="cover-mark">{book.coverMark}</span>
