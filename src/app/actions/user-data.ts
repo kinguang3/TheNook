@@ -1,7 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { getFavorites, getNotes, getRatings } from "@/lib/data";
 import { NOTE_MAX_LENGTH, type UserDataPatch } from "@/lib/types";
 
@@ -12,10 +12,7 @@ export type UserDataResult =
 export async function toggleFavorite(
   bookId: string,
 ): Promise<UserDataResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }
@@ -57,10 +54,7 @@ export async function setRating(
   bookId: string,
   value: number,
 ): Promise<UserDataResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }
@@ -89,10 +83,7 @@ export async function saveNote(
   bookId: string,
   content: string,
 ): Promise<UserDataResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }

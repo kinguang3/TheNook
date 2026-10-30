@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { REVIEW_MAX_LENGTH } from "@/lib/types";
 import type { Review } from "@/lib/types";
 
@@ -26,10 +26,7 @@ export async function createReview(
   bookId: string,
   content: string,
 ): Promise<ReviewMutationResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后发表评论。" };
   }
@@ -39,7 +36,7 @@ export async function createReview(
     return { error: invalid };
   }
 
-  // 身份取自服务端 Session，不信任前端传入的 user_id；
+  // 身份取自服务端会话（proxy 验签后复用），不信任前端传入的 user_id；
   // 顺带 return 里嵌入 profiles，省掉插入后再查一次昵称的往返
   const { data, error } = await supabase
     .from("reviews")
@@ -84,10 +81,7 @@ export async function updateReview(
   reviewId: string,
   content: string,
 ): Promise<ReviewMutationResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }
@@ -138,10 +132,7 @@ export async function updateReview(
 export async function deleteReview(
   reviewId: string,
 ): Promise<ReviewMutationResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }

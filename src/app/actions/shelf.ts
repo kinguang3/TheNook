@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { getShelfData } from "@/lib/data";
 import type { ShelfData, ShelfStatus } from "@/lib/types";
 
@@ -24,10 +24,7 @@ export async function setProgress(
   bookId: string,
   progressValue: number,
 ): Promise<ShelfResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }
@@ -53,7 +50,7 @@ export async function setProgress(
     return { error: "进度更新失败，请稍后再试。" };
   }
 
-  // 复用同一连接与会话：不再重复 auth.getUser()
+  // 复用同一客户端与会话：后续查询不再新建连接
   return { data: await getShelfData(supabase, user.id) };
 }
 
@@ -61,10 +58,7 @@ export async function setStatus(
   bookId: string,
   status: ShelfStatus,
 ): Promise<ShelfResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }
@@ -101,6 +95,6 @@ export async function setStatus(
     return { error: "状态更新失败，请稍后再试。" };
   }
 
-  // 复用同一连接与会话：不再重复 auth.getUser()
+  // 复用同一客户端与会话：后续查询不再新建连接
   return { data: await getShelfData(supabase, user.id) };
 }
