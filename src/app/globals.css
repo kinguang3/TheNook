@@ -208,8 +208,14 @@ button {
 }
 
 .sidebar-resizer:hover::after,
-.sidebar-resizer:active::after {
+.sidebar-resizer:active::after,
+.sidebar-resizer:focus-visible::after {
   background: var(--accent);
+}
+
+.sidebar-resizer:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
 
 body.sidebar-resizing {

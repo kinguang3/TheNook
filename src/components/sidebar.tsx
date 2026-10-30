@@ -50,6 +50,31 @@ export function Sidebar({ userEmail }: SidebarProps) {
     }
   }, [width]);
 
+  const resizeBy = useCallback((delta: number) => {
+    setWidth((current) =>
+      Math.min(Math.max(current + delta, MIN_WIDTH), MAX_WIDTH),
+    );
+  }, []);
+
+  const handleResizeKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        resizeBy(-16);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        resizeBy(16);
+      } else if (event.key === "Home") {
+        event.preventDefault();
+        setWidth(MIN_WIDTH);
+      } else if (event.key === "End") {
+        event.preventDefault();
+        setWidth(MAX_WIDTH);
+      }
+    },
+    [resizeBy],
+  );
+
   const handleResizeStart = useCallback((event: React.PointerEvent) => {
     event.preventDefault();
     const startX = event.clientX;
@@ -85,13 +110,19 @@ export function Sidebar({ userEmail }: SidebarProps) {
   const isLoggedIn = Boolean(userEmail);
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" id="site-sidebar">
       <div
         className="sidebar-resizer"
         role="separator"
         aria-orientation="vertical"
         aria-label="拖拽调节侧边栏宽度"
+        aria-controls="site-sidebar"
+        aria-valuemin={MIN_WIDTH}
+        aria-valuemax={MAX_WIDTH}
+        aria-valuenow={width}
+        tabIndex={0}
         onPointerDown={handleResizeStart}
+        onKeyDown={handleResizeKeyDown}
         onDoubleClick={() => setWidth(DEFAULT_WIDTH)}
       />
 
