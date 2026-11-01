@@ -10,7 +10,7 @@ import { Sidebar } from "@/components/sidebar";
 // 不再自托管 Noto Serif SC 的大量 CJK woff2 子集。
 const plexMono = IBM_Plex_Mono({
   variable: "--font-mono",
-  weight: ["400", "500", "700"],
+  weight: ["400", "500"],
   subsets: ["latin"],
 });
 
