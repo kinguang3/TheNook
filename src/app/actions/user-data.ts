@@ -93,44 +93,25 @@ export async function saveNote(
     return { error: `笔记最多 ${NOTE_MAX_LENGTH} 字。` };
   }
 
-  const { data: existing, error: lookupError } = await supabase
-    .from("notes")
-    .select("book_id")
-    .eq("user_id", user.id)
-    .eq("book_id", bookId)
-    .maybeSingle();
-  if (lookupError) {
-    return { error: "保存失败，请稍后再试。" };
-  }
-
-  const record = { user_id: user.id, book_id: bookId, content: trimmed };
-
-  if (!trimmed) {
-    // 清空笔记 => 删除该行，页面回退展示档案默认 note
-    if (existing) {
-      const { error } = await supabase
+  // 空内容走幂等删除，非空走 upsert：省掉保存前那次存在性查询。
+  // upsert 的更新分支不会触发列默认值，updated_at 需显式写入。
+  const { error } = trimmed
+    ? await supabase.from("notes").upsert(
+        {
+          user_id: user.id,
+          book_id: bookId,
+          content: trimmed,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,book_id" },
+      )
+    : await supabase
         .from("notes")
         .delete()
         .eq("user_id", user.id)
         .eq("book_id", bookId);
-      if (error) {
-        return { error: "保存失败，请稍后再试。" };
-      }
-    }
-  } else if (existing) {
-    const { error } = await supabase
-      .from("notes")
-      .update({ content: trimmed })
-      .eq("user_id", user.id)
-      .eq("book_id", bookId);
-    if (error) {
-      return { error: "保存失败，请稍后再试。" };
-    }
-  } else {
-    const { error } = await supabase.from("notes").insert(record);
-    if (error) {
-      return { error: "保存失败，请稍后再试。" };
-    }
+  if (error) {
+    return { error: "保存失败，请稍后再试。" };
   }
 
   // 只回传笔记（唯一变化的一类）
