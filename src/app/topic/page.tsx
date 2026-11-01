@@ -139,7 +139,7 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
         </div>
 
         <div className="topic-grid">
-          {topicBooks.map((book) => (
+          {topicBooks.map((book, index) => (
             <article className="topic-card" key={book.id}>
               <p className="card-case">
                 {book.year}　{book.readTime}
@@ -152,6 +152,7 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
                     alt={`${book.title} 封面`}
                     fill
                     sizes="(max-width: 640px) 90vw, 300px"
+                    priority={index === 0}
                   />
                 ) : (
                   <span className="cover-mark">{book.coverMark}</span>

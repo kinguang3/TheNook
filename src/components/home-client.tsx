@@ -213,6 +213,9 @@ export default function HomeClient({
     setTypeFilter('all')
   }
 
+  // 时间线首张封面通常就是首屏 LCP，交给 next/image 预加载
+  const leadBookId = filteredBooks[0]?.id
+
   const hasActiveFilters = regionFilter !== 'all' || eraFilter !== 'all' || typeFilter !== 'all'
 
   return (
@@ -333,6 +336,7 @@ export default function HomeClient({
                         rating={rating}
                         favorites={favorites}
                         isLoggedIn={isLoggedIn}
+                        priority={book.id === leadBookId}
                       />
                     )
                   })}
@@ -352,6 +356,7 @@ export default function HomeClient({
                   rating={rating}
                   favorites={favorites}
                   isLoggedIn={isLoggedIn}
+                  priority={book.id === leadBookId}
                 />
               )
             })
@@ -376,6 +381,7 @@ interface CasebookCardProps {
   rating?: { avg: number; count: number }
   favorites?: string[]
   isLoggedIn: boolean
+  priority?: boolean
 }
 
 function CasebookCard({
@@ -384,6 +390,7 @@ function CasebookCard({
   rating,
   favorites,
   isLoggedIn,
+  priority,
 }: CasebookCardProps) {
   const avgRating = rating?.avg ?? 0
   const ratingCount = rating?.count ?? 0
@@ -416,6 +423,7 @@ function CasebookCard({
               fill
               sizes="(max-width: 640px) 84px, 104px"
               className="cover-image"
+              priority={priority}
             />
           ) : (
             <div className={`cover-placeholder ${book.coverTone}`}>
