@@ -111,7 +111,12 @@ export function SearchClient({
           aria-label="全局搜索"
           autoFocus
         />
-        <p className="meta-text search-summary">
+        <p
+          className="meta-text search-summary"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {!hasKeyword
             ? "输入关键词，同时检索作者 / 书籍 / 时间线三个维度。"
             : `共 ${totalResults} 条结果，关键词「${query.trim()}」`}
