@@ -3,6 +3,7 @@ import { LoginForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = {
   title: "登录 | Casebook Timeline",
+  robots: { index: false, follow: false },
 };
 
 const CALLBACK_ERROR_MESSAGES: Record<string, string> = {

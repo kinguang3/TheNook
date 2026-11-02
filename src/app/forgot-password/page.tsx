@@ -3,6 +3,7 @@ import { ForgotPasswordForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = {
   title: "忘记密码 | Casebook Timeline",
+  robots: { index: false, follow: false },
 };
 
 export default function ForgotPasswordPage() {

@@ -16,11 +16,19 @@ export async function generateMetadata(
   const books = await getBooks();
   const book = books.find((entry) => entry.id === bookId);
   if (!book) {
-    return { title: "书评 | Casebook Timeline" };
+    return {
+      title: "书评 | Casebook Timeline",
+      robots: { index: false, follow: false },
+    };
   }
+  const title = `${book.title} 的书评 | Casebook Timeline`;
+  const description = `${book.authorName} · ${book.year} · ${book.blurb.slice(0, 80)}`;
+  const path = `/books/${bookId}/reviews`;
   return {
-    title: `${book.title} 的书评 | Casebook Timeline`,
-    description: `${book.authorName} · ${book.year} · ${book.blurb.slice(0, 80)}`,
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: "article", title, description, url: path },
   };
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/supabase/server";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { RecoveryWatcher } from "@/components/recovery-watcher";
 import { Sidebar } from "@/components/sidebar";
 
@@ -15,9 +16,23 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: "Casebook Timeline | 推理小说推荐与收藏",
-  description:
-    "一个以纵向时间线呈现的推理小说推荐与收藏网站，支持标签筛选、收藏、评分与专题聚合。",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "zh_CN",
+    siteName: SITE_NAME,
+    title: "Casebook Timeline | 推理小说推荐与收藏",
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Casebook Timeline | 推理小说推荐与收藏",
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default async function RootLayout(props: LayoutProps<"/">) {
@@ -26,6 +41,9 @@ export default async function RootLayout(props: LayoutProps<"/">) {
   return (
     <html lang="zh-CN" className={plexMono.variable}>
       <body>
+        <a className="skip-link" href="#main-content">
+          跳到主内容
+        </a>
         <script
           dangerouslySetInnerHTML={{
             __html:
@@ -35,7 +53,7 @@ export default async function RootLayout(props: LayoutProps<"/">) {
         <RecoveryWatcher />
         <div className="app-shell">
           <Sidebar userEmail={user?.email ?? null} />
-          <div className="app-main">
+          <div className="app-main" id="main-content" tabIndex={-1}>
             {props.children}
             <footer className="site-footer">
               <p>Casebook Timeline</p>

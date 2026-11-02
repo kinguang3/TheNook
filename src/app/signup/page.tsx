@@ -3,6 +3,7 @@ import { SignupForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = {
   title: "注册 | Casebook Timeline",
+  robots: { index: false, follow: false },
 };
 
 export default function SignupPage() {

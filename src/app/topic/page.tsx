@@ -15,7 +15,10 @@ export async function generateMetadata({
 }: TopicPageProps): Promise<Metadata> {
   const { type, id } = await searchParams;
   if ((type !== "author" && type !== "series") || !id) {
-    return { title: "专题 | Casebook Timeline" };
+    return {
+      title: "专题 | Casebook Timeline",
+      robots: { index: false, follow: false },
+    };
   }
   const label = type === "series" ? "系列" : "作者";
   const [authors, seriesList] = await Promise.all([getAuthors(), getSeries()]);
@@ -23,13 +26,18 @@ export async function generateMetadata({
     type === "series"
       ? seriesList.find((entry) => entry.id === id)?.name
       : authors.find((entry) => entry.id === id)?.name;
+  const path = `/topic?type=${type}&id=${encodeURIComponent(id)}`;
+  const title = name
+    ? `${name} / ${label}专题 | Casebook Timeline`
+    : `专题 / ${label} | Casebook Timeline`;
+  const description = name
+    ? `查看推理小说${label}「${name}」的聚合书单与简介。`
+    : `查看推理小说${label}专题，浏览聚合书单与相关简介。`;
   return {
-    title: name
-      ? `${name} / ${label}专题 | Casebook Timeline`
-      : `专题 / ${label} | Casebook Timeline`,
-    description: name
-      ? `查看推理小说${label}「${name}」的聚合书单与简介。`
-      : `查看推理小说${label}专题，浏览聚合书单与相关简介。`,
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { title, description, url: path },
   };
 }
 

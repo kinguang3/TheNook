@@ -6,6 +6,7 @@ import { ResetPasswordForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = {
   title: "设置新密码 | Casebook Timeline",
+  robots: { index: false, follow: false },
 };
 
 export default async function ResetPasswordPage() {

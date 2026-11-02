@@ -15,6 +15,7 @@ export async function generateMetadata({
   return {
     title: `搜索${q ? ` / ${q}` : ""} | Casebook Timeline`,
     description: "按作者、书籍与时间线三个维度检索推理小说档案。",
+    robots: { index: false, follow: true },
   };
 }
 

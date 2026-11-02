@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { getBooks, getFavorites, getRatingStats } from "@/lib/data";
 import HomeClient from "@/components/home-client";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const { supabase, user } = await getCurrentUser();

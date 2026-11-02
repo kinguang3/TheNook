@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { getBooks, getFavorites, getShelfData } from "@/lib/data";
 import type { ShelfData } from "@/lib/types";
 import { ShelfClient } from "@/components/shelf-client";
+
+export const metadata: Metadata = {
+  title: "书架 | Casebook Timeline",
+  robots: { index: false, follow: false },
+};
 
 export default async function ShelfPage() {
   const { supabase, user } = await getCurrentUser();
