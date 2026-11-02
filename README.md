@@ -144,6 +144,7 @@ recommendation/                         # 推荐引擎（Python，离线运行�
 - **会话与身份**：`src/proxy.ts` 用 `getClaims()` 校验 JWT 并刷新过期会话，验签后把用户写入内部请求头（同名客户端头会被剥离）；`getCurrentUser()`（React `cache`）直接复用，头缺失才回退 `getUser()`，登录态页面因此少一次 Auth 往返
 - **图片与字体**：`next/image` + AVIF/WebP，`sizes` 按真实渲染宽度设置；中文走系统字体栈，仅自托管 IBM Plex Mono 拉丁子集
 - **动效零依赖**：印刷颗粒与时间线阅读光束均为纯 CSS / 原生 JS，未引入 Tailwind 或 framer-motion
+- **SEO**：`metadataBase` + 每页 canonical；`sitemap.xml` 动态包含公开书目与专题，`robots.txt` 屏蔽登录、搜索与个人页；`opengraph-image` / `twitter-image` 由 satori 生成 1200×630 分享图
 
 ## 开发提示
 
