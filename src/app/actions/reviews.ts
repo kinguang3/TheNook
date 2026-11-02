@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { REVIEW_MAX_LENGTH } from "@/lib/types";
 import type { Review } from "@/lib/types";
@@ -62,7 +62,6 @@ export async function createReview(
   ).profiles;
 
   updateTag("reviews");
-  revalidatePath(`/books/${bookId}/reviews`);
 
   return {
     review: {
@@ -110,7 +109,6 @@ export async function updateReview(
   }
 
   updateTag("reviews");
-  revalidatePath(`/books/${data.book_id}/reviews`);
 
   const profile = (
     data as unknown as { profiles: { display_name: string } | null }
@@ -153,7 +151,6 @@ export async function deleteReview(
   }
 
   updateTag("reviews");
-  revalidatePath(`/books/${data.book_id}/reviews`);
 
   return { bookId: data.book_id as string };
 }
