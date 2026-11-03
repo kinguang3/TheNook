@@ -3,10 +3,10 @@
 import Link from "next/link";
 
 export default function ErrorBoundary({
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   return (
     <main className="auth-wrap">
@@ -16,7 +16,7 @@ export default function ErrorBoundary({
           渲染这条档案时发生异常。重试一次通常就能恢复；反复出现请稍后再来。
         </p>
         <p>
-          <button type="button" className="button-link" onClick={reset}>
+          <button type="button" className="button-link" onClick={retry}>
             重试
           </button>
         </p>

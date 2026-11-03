@@ -109,6 +109,9 @@ export function SearchClient({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           aria-label="全局搜索"
+          enterKeyHint="search"
+          autoComplete="off"
+          spellCheck={false}
           autoFocus
         />
         <p

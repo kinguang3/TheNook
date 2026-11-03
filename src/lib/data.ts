@@ -14,14 +14,14 @@ const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
 // 目录数据（authors / series / books）是公开只读、极少变动的种子内容：
 // 用不带 Cookie 的 anon 客户端读取，并交给 unstable_cache 跨请求缓存，
 // 避免每次渲染都重复查 Supabase。用户个人数据仍走带会话的客户端按请求查。
-// 目录有更新时调用 revalidateTag("catalog") 即可失效。
+// 目录有更新时调用 updateTag("catalog") 即可立即失效。
 const CATALOG_CACHE = {
   revalidate: 600,
   tags: ["catalog"],
 };
 
 // rating_stats 由全体用户评分聚合而来，缓存窗口短一些；
-// setRating 写入后会 revalidateTag("rating-stats") 主动失效。
+// setRating 写入后会 updateTag("rating-stats") 主动失效。
 const RATING_STATS_CACHE = {
   revalidate: 300,
   tags: ["rating-stats"],

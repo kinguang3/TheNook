@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/supabase/server";
@@ -33,6 +33,11 @@ export const metadata: Metadata = {
     title: "Casebook Timeline | 推理小说推荐与收藏",
     description: SITE_DESCRIPTION,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0d0f12",
+  colorScheme: "dark",
 };
 
 export default async function RootLayout(props: LayoutProps<"/">) {

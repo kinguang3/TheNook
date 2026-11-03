@@ -138,7 +138,7 @@ recommendation/                         # 推荐引擎（Python，离线运行�
 ## 性能与缓存
 
 - **公开数据缓存**：`authors` / `series` / `books` 缓存 10 分钟，`rating_stats` 与书评缓存 5 分钟；统一走匿名客户端 + `unstable_cache`，标签为 `catalog` / `rating-stats` / `reviews`
-- **写后即时失效**：评分后 `updateTag("rating-stats")`，书评增改删后 `updateTag("reviews")`；目录更新用 `revalidateTag("catalog")` 或重新部署
+- **写后即时失效**：评分后 `updateTag("rating-stats")`，书评增改删后 `updateTag("reviews")`；目录更新在 Server Action / Route Handler 里用 `updateTag("catalog")`，或直接重新部署
 - **用户数据按需查**：首页只查收藏、专题只查笔记、书架查书架 + 收藏、书评页只查当前这本书的评分，避免一页拉三张表
 - **搜索不跑服务端**：命中缓存的目录数据一次性下发，客户端即时过滤；URL 用 `history.replaceState` 同步，不触发 RSC 往返
 - **会话与身份**：`src/proxy.ts` 用 `getClaims()` 校验 JWT 并刷新过期会话，验签后把用户写入内部请求头（同名客户端头会被剥离）；`getCurrentUser()`（React `cache`）直接复用，头缺失才回退 `getUser()`，登录态页面因此少一次 Auth 往返

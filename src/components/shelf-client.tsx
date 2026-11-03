@@ -191,14 +191,16 @@ export function ShelfClient({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           aria-label="搜索书架"
+          enterKeyHint="search"
+          autoComplete="off"
+          spellCheck={false}
         />
-        <div className="shelf-filters" role="tablist" aria-label="状态筛选">
+        <div className="shelf-filters" role="group" aria-label="状态筛选">
           {filters.map(({ key, label }) => (
             <button
               key={key}
               type="button"
-              role="tab"
-              aria-selected={filter === key}
+              aria-pressed={filter === key}
               className={`tag-button${filter === key ? " active" : ""}`}
               onClick={() => setFilter(key)}
             >
