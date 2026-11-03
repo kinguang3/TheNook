@@ -2,14 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 export function RecoveryWatcher() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient();
-
     // 兜底 1: 邮件链接 redirect 被 Supabase fallback 到首页等页面时，
     // URL 上会残留 ?code=，在客户端完成 exchange 并按类型跳转
     const params = new URLSearchParams(window.location.search);
@@ -37,15 +34,34 @@ export function RecoveryWatcher() {
       return;
     }
 
-    // 兜底 2: implicit hash 流程 (#access_token=...&type=recovery) 落到任意页
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        router.push("/auth/reset-password");
-      }
-    });
-    return () => subscription.unsubscribe();
+    // 兜底 2: implicit hash 流程 (#access_token=...&type=recovery) 落到任意页。
+    // 只有这种 URL 才需要 Supabase 客户端；普通页面延迟加载，避免每页都下载 supabase-js。
+    if (hashParams.get("type") !== "recovery") {
+      return;
+    }
+
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+
+    import("@/lib/supabase/client")
+      .then(({ createClient }) => {
+        if (cancelled) return;
+        const supabase = createClient();
+        const { data } = supabase.auth.onAuthStateChange((event) => {
+          if (event === "PASSWORD_RECOVERY") {
+            router.push("/auth/reset-password");
+          }
+        });
+        unsubscribe = () => data.subscription.unsubscribe();
+      })
+      .catch(() => {
+        // 客户端脚本加载失败时保持当前页，用户仍可用邮箱入口重置密码
+      });
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }, [router]);
 
   return null;
