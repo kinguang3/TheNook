@@ -40,7 +40,7 @@ Next.js 16 · React 19 · TypeScript · Supabase
 在 Supabase 控制台 → SQL Editor 中执行 SQL：
 
 - **全新项目**：执行 [`supabase/schema.sql`](supabase/schema.sql)，一次建全所有表、RLS、触发器、聚合视图与种子数据
-- **已有数据库**：只执行增量迁移脚本，不要重跑全量文件
+- **已有数据库**：只执行增量迁移脚本，不要重跑全量文件；书评功能对应 [`supabase/migration-reviews.sql`](supabase/migration-reviews.sql)
 
 包含的数据表：
 
@@ -94,9 +94,11 @@ npm start
 ```
 src/
 ├── app/
-│   ├── layout.tsx                      # 根布局（侧边栏、页脚、颗粒/宽度启动脚本）
+│   ├── layout.tsx                      # 根布局（侧边栏、页脚、skip link、颗粒/宽度启动脚本）
 │   ├── page.tsx                        # 首页（案件档案时间线 + 筛选）
-│   ├── error.tsx / not-found.tsx       # 路由级错误与 404 兜底
+│   ├── error.tsx / global-error.tsx / not-found.tsx # 错误与 404 兜底
+│   ├── sitemap.ts / robots.ts          # SEO 路由（sitemap 请求时生成）
+│   ├── opengraph-image.tsx / twitter-image.tsx # satori 分享图（1200×630）
 │   ├── topic/page.tsx                  # 作者 / 系列专题（/topic?type=author|series&id=）
 │   ├── search/page.tsx                 # 全局搜索页（需登录）
 │   ├── books/[bookId]/reviews/page.tsx # 每本书的独立书评页
@@ -114,14 +116,17 @@ src/
 │   ├── user-rating.tsx                 # 1–5 星评分
 │   ├── auth-forms.tsx                  # 登录 / 注册 / 忘记密码 / 设置新密码
 │   ├── sign-out-button.tsx
-│   └── recovery-watcher.tsx            # 客户端兜底：拦截 ?code= / #error_code= 并转交服务端
+│   └── recovery-watcher.tsx            # 客户端兜底：?code= / #error_code= 转交服务端；仅 recovery hash 按需加载 Supabase
 ├── lib/
-│   ├── supabase/                       # 服务端（cookie 会话）/ 浏览器客户端
+│   ├── supabase/                       # 服务端客户端（cookie 会话）；浏览器客户端仅恢复链接懒加载
 │   ├── pkce-recovery.ts                # 密码重置 PKCE 工具（验证符 / 挑战 / Cookie 名）
+│   ├── site.ts                         # 站点常量（URL / 名称 / 描述）
+│   ├── og-image.tsx                    # satori 分享图渲染
 │   ├── data.ts                         # 数据读取与缓存边界
 │   └── types.ts                        # 领域类型
 └── proxy.ts                            # 会话刷新代理（Next.js 16 替代 middleware）
 supabase/schema.sql                     # 全量建表 + RLS + 触发器 + 种子数据 + 聚合视图
+supabase/migration-reviews.sql          # 书评功能增量迁移（已有库使用）
 recommendation/                         # 推荐引擎（Python，离线运行）
 ├── config.py                           # 读取 .env 中的 Supabase 配置
 ├── data_loader.py                      # 分页拉取 ratings / books / authors（带网络重试）
@@ -142,9 +147,11 @@ recommendation/                         # 推荐引擎（Python，离线运行�
 - **用户数据按需查**：首页只查收藏、专题只查笔记、书架查书架 + 收藏、书评页只查当前这本书的评分，避免一页拉三张表
 - **搜索不跑服务端**：命中缓存的目录数据一次性下发，客户端即时过滤；URL 用 `history.replaceState` 同步，不触发 RSC 往返
 - **会话与身份**：`src/proxy.ts` 用 `getClaims()` 校验 JWT 并刷新过期会话，验签后把用户写入内部请求头（同名客户端头会被剥离）；`getCurrentUser()`（React `cache`）直接复用，头缺失才回退 `getUser()`，登录态页面因此少一次 Auth 往返
-- **图片与字体**：`next/image` + AVIF/WebP，`sizes` 按真实渲染宽度设置；中文走系统字体栈，仅自托管 IBM Plex Mono 拉丁子集
+- **图片与字体**：`next/image` 输出 AVIF / WebP，`sizes` 按真实渲染宽度设置，优化结果缓存 31 天；中文走系统字体栈，仅自托管 IBM Plex Mono 400/500 的拉丁子集
+- **浏览器端零 Supabase SDK**：认证全部走 Server Actions；只有遗留 implicit 恢复链接（`#...type=recovery`）才动态加载 `@supabase/supabase-js`，普通页面不下载该 SDK
+- **安全响应头**：HSTS（1 年，含子域）、`X-Content-Type-Options: nosniff`、`X-Frame-Options: SAMEORIGIN`、`Referrer-Policy: strict-origin-when-cross-origin`、`Permissions-Policy`，并关闭 `X-Powered-By`
 - **动效零依赖**：印刷颗粒与时间线阅读光束均为纯 CSS / 原生 JS，未引入 Tailwind 或 framer-motion
-- **SEO**：`metadataBase` + 每页 canonical；`sitemap.xml` 动态包含公开书目与专题，`robots.txt` 屏蔽登录、搜索与个人页；`opengraph-image` / `twitter-image` 由 satori 生成 1200×630 分享图
+- **SEO**：`metadataBase` + 每页 canonical；`sitemap.xml` 请求时生成，包含首页、13 个书评页、8 个作者专题、4 个系列专题（数据源异常时回退为首页）；`robots.txt` 屏蔽登录、搜索与个人页（对应页面同时输出 `noindex`）；`opengraph-image` / `twitter-image` 由 satori 生成 1200×630 分享图
 
 ## 开发提示
 
@@ -158,12 +165,14 @@ recommendation/                         # 推荐引擎（Python，离线运行�
 - 重复注册不会提示「邮箱已存在」（防枚举）；未验证账号会重发确认信，已确认账号则静默不发。登录未验证账号也会自动补发，提示文案保持中性
 - 忘记密码的跨设备支持：`lib/pkce-recovery.ts` 会把一次性验证符放入邮件链接，回调优先用它完成兑换
 - 仓库暂未配置 ESLint / 测试脚本；质量门槛目前是 `tsc` + `next build` + 路由回归
+- 公开页面若不应被搜索引擎收录，在页面 `metadata` 里加 `robots: { index: false }`，并与 `robots.ts` 的规则保持一致；新增公开路由时记得同步 `sitemap.ts`
 
 ## 部署
 
 1. Vercel 导入仓库，配置 `.env.example` 中的三项环境变量（`NEXT_PUBLIC_SITE_URL` 用正式域名）
 2. Supabase → Authentication → URL Configuration：Site URL 填正式域名，Redirect URLs 加上回调与重置页
 3. `vercel.json` 已把函数区域固定在 `hkg1`（新加坡），与 Supabase 项目区域保持一致以降延迟
+4. 部署后检查 `/sitemap.xml`（应为 26 条 URL）、`/robots.txt`、`/opengraph-image`，以及响应头中的 HSTS 等安全头
 
 ## 推荐引擎
 
