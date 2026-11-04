@@ -159,7 +159,7 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
                     src={book.coverUrl}
                     alt={`${book.title} 封面`}
                     fill
-                    sizes="(max-width: 640px) 90vw, 300px"
+                    sizes="(max-width: 420px) 90vw, (max-width: 640px) 45vw, 300px"
                     priority={index === 0}
                   />
                 ) : (

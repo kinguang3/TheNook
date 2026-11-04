@@ -438,7 +438,7 @@ function CasebookCard({
               src={book.coverUrl}
               alt={book.title}
               fill
-              sizes="(max-width: 640px) 84px, 104px"
+              sizes="(max-width: 420px) 72px, (max-width: 640px) 84px, 104px"
               className="cover-image"
               priority={priority}
             />
