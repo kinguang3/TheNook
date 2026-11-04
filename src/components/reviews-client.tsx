@@ -63,6 +63,8 @@ export function ReviewsClient({
         setReviews((prev) => [created, ...prev]);
         setContent("");
       }
+    } catch {
+      setFormError("网络异常，书评未发表，请稍后再试。");
     } finally {
       setSubmitting(false);
     }
@@ -103,6 +105,8 @@ export function ReviewsClient({
       } else if (result.error) {
         setFormError(result.error);
       }
+    } catch {
+      setFormError("网络异常，修改未保存，请稍后再试。");
     } finally {
       setEditBusy(false);
     }
@@ -119,6 +123,8 @@ export function ReviewsClient({
         return;
       }
       setReviews((prev) => prev.filter((entry) => entry.id !== review.id));
+    } catch {
+      setFormError("网络异常，删除未完成，请稍后再试。");
     } finally {
       setDeletingId(null);
     }

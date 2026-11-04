@@ -43,27 +43,33 @@ export function UserRating({
       window.clearTimeout(fadeTimerRef.current);
       setSaveState({ kind: "saving" });
 
-      const result = await setRating(bookId, value);
-      if (!result?.data || result.error) {
-        // 以服务器结果为准：失败时回滚显示并提示
-        setRatingValue(previous);
-        setSaveState({
-          kind: "error",
-          message: result?.error ?? "保存失败，请稍后再试。",
-        });
-        return;
-      }
+      try {
+        const result = await setRating(bookId, value);
+        if (!result?.data || result.error) {
+          // 以服务器结果为准：失败时回滚显示并提示
+          setRatingValue(previous);
+          setSaveState({
+            kind: "error",
+            message: result?.error ?? "保存失败，请稍后再试。",
+          });
+          return;
+        }
 
-      const saved = result.data.ratings?.[bookId] ?? value;
-      setRatingValue(saved);
-      setSaveState({ kind: "saved", value: saved });
-      if (result.data.ratingStat !== undefined) {
-        onRatingChange?.(result.data.ratingStat);
+        const saved = result.data.ratings?.[bookId] ?? value;
+        setRatingValue(saved);
+        setSaveState({ kind: "saved", value: saved });
+        if (result.data.ratingStat !== undefined) {
+          onRatingChange?.(result.data.ratingStat);
+        }
+        fadeTimerRef.current = window.setTimeout(
+          () => setSaveState({ kind: "idle" }),
+          2200,
+        );
+      } catch {
+        // 网络异常时也必须退出 saving，否则五星会一直处于禁用状态
+        setRatingValue(previous);
+        setSaveState({ kind: "error", message: "网络异常，评分未保存。" });
       }
-      fadeTimerRef.current = window.setTimeout(
-        () => setSaveState({ kind: "idle" }),
-        2200,
-      );
     },
     [bookId, onRatingChange, rating, saveState.kind],
   );
