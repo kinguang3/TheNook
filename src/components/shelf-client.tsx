@@ -47,6 +47,7 @@ export function ShelfClient({
   const [shelf, setShelf] = useState<ShelfData>(initialShelf);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
   const [busy, setBusy] = useState<Set<string>>(new Set());
+  const [error, setError] = useState("");
   const timersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   const entryOf = (book: Book) =>
@@ -59,7 +60,14 @@ export function ShelfClient({
   const applyServerResult = (result: unknown) => {
     if (!result || typeof result !== "object") return;
     const entry = result as { data?: ShelfData; error?: string };
-    if (entry.data) setShelf(entry.data);
+    if (entry.error) {
+      setError(entry.error);
+      return;
+    }
+    if (entry.data) {
+      setShelf(entry.data);
+      setError("");
+    }
   };
 
   const markBusy = (bookId: string, flag: boolean) => {
@@ -69,6 +77,14 @@ export function ShelfClient({
       else next.delete(bookId);
       return next;
     });
+  };
+
+  const persistProgress = (bookId: string, progress: number) => {
+    markBusy(bookId, true);
+    void setProgress(bookId, progress)
+      .then((result) => applyServerResult(result))
+      .catch(() => setError("网络异常，阅读进度未保存。"))
+      .finally(() => markBusy(bookId, false));
   };
 
   const handleProgressChange = (book: Book, value: number) => {
@@ -90,15 +106,20 @@ export function ShelfClient({
     if (timer) clearTimeout(timer);
     timersRef.current.set(
       book.id,
-      setTimeout(async () => {
-        markBusy(book.id, true);
-        try {
-          applyServerResult(await setProgress(book.id, progress));
-        } finally {
-          markBusy(book.id, false);
-        }
+      setTimeout(() => {
+        timersRef.current.delete(book.id);
+        persistProgress(book.id, progress);
       }, 500),
     );
+  };
+
+  // 拖拽/键盘调整结束后立刻落库，避免用户马上离开页面时丢掉最后 500ms 内的改动
+  const flushProgress = (book: Book, value?: number) => {
+    if (!timersRef.current.has(book.id)) return;
+    const timer = timersRef.current.get(book.id);
+    if (timer) clearTimeout(timer);
+    timersRef.current.delete(book.id);
+    persistProgress(book.id, value ?? entryOf(book).progress);
   };
 
   const handleCycleStatus = (book: Book) => {
@@ -122,7 +143,7 @@ export function ShelfClient({
     void setStatus(book.id, next)
       .then((result) => applyServerResult(result))
       // 网络异常时保留乐观状态，避免 busy 标志永久卡住按钮
-      .catch(() => undefined)
+      .catch(() => setError("网络异常，阅读状态未保存。"))
       .finally(() => markBusy(book.id, false));
   };
 
@@ -130,8 +151,18 @@ export function ShelfClient({
     if (!isAuthed || busy.has(bookId)) return;
     markBusy(bookId, true);
     try {
-      const favorites = (await toggleFavorite(bookId))?.data?.favorites;
-      if (favorites) setFavorites(favorites);
+      const result = await toggleFavorite(bookId);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      const nextFavorites = result?.data?.favorites;
+      if (nextFavorites) {
+        setFavorites(nextFavorites);
+        setError("");
+      }
+    } catch {
+      setError("网络异常，未能移出书架。");
     } finally {
       markBusy(bookId, false);
     }
@@ -210,6 +241,12 @@ export function ShelfClient({
         </div>
       </div>
 
+      {error ? (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+
       <div className="shelf-list">
         {rows.length === 0 ? (
           <div className="shelf-empty">
@@ -286,6 +323,15 @@ export function ShelfClient({
                 value={entry.progress}
                 onChange={(event) =>
                   handleProgressChange(book, Number(event.target.value))
+                }
+                onPointerUp={(event) =>
+                  flushProgress(book, Number(event.currentTarget.value))
+                }
+                onKeyUp={(event) =>
+                  flushProgress(book, Number(event.currentTarget.value))
+                }
+                onBlur={(event) =>
+                  flushProgress(book, Number(event.currentTarget.value))
                 }
                 disabled={!isAuthed || busy.has(book.id)}
                 aria-label={`${book.title} 阅读进度调整`}
