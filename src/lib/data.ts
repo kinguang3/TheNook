@@ -45,22 +45,6 @@ function publicClient() {
   return createClient(url, key);
 }
 
-async function fetchAuthors(): Promise<Author[]> {
-  const supabase = publicClient();
-  const { data, error } = await supabase.from("authors").select("*");
-  // 目录查询失败必须抛出：返回空数组会被 unstable_cache 缓存住，
-  // 一次瞬时故障就会让站点空目录 10 分钟；抛错则不进缓存，由 error.tsx 兜底
-  if (error) throw new Error(`加载作者失败：${error.message}`);
-  return (data ?? []) as Author[];
-}
-
-async function fetchSeries(): Promise<Series[]> {
-  const supabase = publicClient();
-  const { data, error } = await supabase.from("series").select("*");
-  if (error) throw new Error(`加载系列失败：${error.message}`);
-  return (data ?? []) as Series[];
-}
-
 type BookRow = {
   id: string;
   title: string;
@@ -106,7 +90,11 @@ function mapBookRows(
   }));
 }
 
-async function fetchBooks(): Promise<Book[]> {
+async function fetchCatalog(): Promise<{
+  authors: Author[];
+  seriesList: Series[];
+  books: Book[];
+}> {
   const supabase = publicClient();
   const [authorsResult, seriesResult, booksResult] = await Promise.all([
     supabase.from("authors").select("*"),
@@ -114,15 +102,37 @@ async function fetchBooks(): Promise<Book[]> {
     supabase.from("books").select("*").order("year"),
   ]);
 
-  // 同上：任一查询失败即抛出，避免把空目录写进跨请求缓存
+  // 任一查询失败即抛出，避免把空目录写进跨请求缓存；
+  // 三张表一次取回，冷缓存时也不会被 getBooks/getAuthors 重复查询
   const failure = authorsResult.error ?? seriesResult.error ?? booksResult.error;
-  if (failure) throw new Error(`加载书目失败：${failure.message}`);
+  if (failure) throw new Error(`加载目录失败：${failure.message}`);
 
-  return mapBookRows(
-    (booksResult.data ?? []) as BookRow[],
-    (authorsResult.data ?? []) as Author[],
-    (seriesResult.data ?? []) as Series[],
-  );
+  const authors = (authorsResult.data ?? []) as Author[];
+  const seriesList = (seriesResult.data ?? []) as Series[];
+
+  return {
+    authors,
+    seriesList,
+    books: mapBookRows(
+      (booksResult.data ?? []) as BookRow[],
+      authors,
+      seriesList,
+    ),
+  };
+}
+
+const getCatalog = unstable_cache(fetchCatalog, ["catalog"], CATALOG_CACHE);
+
+export async function getAuthors(): Promise<Author[]> {
+  return (await getCatalog()).authors;
+}
+
+export async function getSeries(): Promise<Series[]> {
+  return (await getCatalog()).seriesList;
+}
+
+export async function getBooks(): Promise<Book[]> {
+  return (await getCatalog()).books;
 }
 
 async function fetchRatingStats(): Promise<RatingStat[]> {
@@ -138,12 +148,6 @@ async function fetchRatingStats(): Promise<RatingStat[]> {
     ratingCount: Number(row.rating_count),
   }));
 }
-
-export const getAuthors = unstable_cache(fetchAuthors, ["catalog:authors"], CATALOG_CACHE);
-
-export const getSeries = unstable_cache(fetchSeries, ["catalog:series"], CATALOG_CACHE);
-
-export const getBooks = unstable_cache(fetchBooks, ["catalog:books"], CATALOG_CACHE);
 
 export const getRatingStats = unstable_cache(
   fetchRatingStats,
