@@ -52,7 +52,20 @@ export default function HomeClient({
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all')
   const [eraFilter, setEraFilter] = useState<EraFilter>('all')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
+  // 收藏状态放在父级：筛选/排序会重建卡片，状态若留在卡片里会被重置
+  const [favoriteIds, setFavoriteIds] = useState(
+    () => new Set(favorites ?? []),
+  )
   const timelineRef = useRef<HTMLDivElement>(null)
+
+  const handleFavoriteChange = (bookId: string, active: boolean) => {
+    setFavoriteIds((prev) => {
+      const next = new Set(prev)
+      if (active) next.add(bookId)
+      else next.delete(bookId)
+      return next
+    })
+  }
 
   const ratingMap = useMemo(() => {
     const map = new Map<string, { avg: number; count: number }>()
@@ -334,7 +347,8 @@ export default function HomeClient({
                         book={book}
                         caseNum={caseNum}
                         rating={rating}
-                        favorites={favorites}
+                        isFavorite={favoriteIds.has(book.id)}
+                        onFavoriteChange={handleFavoriteChange}
                         isLoggedIn={isLoggedIn}
                         priority={book.id === leadBookId}
                       />
@@ -354,7 +368,8 @@ export default function HomeClient({
                   book={book}
                   caseNum={caseNum}
                   rating={rating}
-                  favorites={favorites}
+                  isFavorite={favoriteIds.has(book.id)}
+                  onFavoriteChange={handleFavoriteChange}
                   isLoggedIn={isLoggedIn}
                   priority={book.id === leadBookId}
                 />
@@ -379,7 +394,8 @@ interface CasebookCardProps {
   book: Book
   caseNum: number
   rating?: { avg: number; count: number }
-  favorites?: string[]
+  isFavorite: boolean
+  onFavoriteChange: (bookId: string, active: boolean) => void
   isLoggedIn: boolean
   priority?: boolean
 }
@@ -388,14 +404,13 @@ function CasebookCard({
   book,
   caseNum,
   rating,
-  favorites,
+  isFavorite,
+  onFavoriteChange,
   isLoggedIn,
   priority,
 }: CasebookCardProps) {
   const avgRating = rating?.avg ?? 0
   const ratingCount = rating?.count ?? 0
-  const isFavorite = favorites?.includes(book.id) ?? false
-  const [favActive, setFavActive] = useState(isFavorite)
   const [favBusy, setFavBusy] = useState(false)
 
   // Determine series indicator
@@ -405,8 +420,10 @@ function CasebookCard({
     if (favBusy || !isLoggedIn) return
     setFavBusy(true)
     try {
-      const favorites = (await toggleFavorite(book.id))?.data?.favorites
-      if (favorites) setFavActive(favorites.includes(book.id))
+      const nextFavorites = (await toggleFavorite(book.id))?.data?.favorites
+      if (nextFavorites) {
+        onFavoriteChange(book.id, nextFavorites.includes(book.id))
+      }
     } finally {
       setFavBusy(false)
     }
@@ -465,14 +482,14 @@ function CasebookCard({
           {isLoggedIn && (
             <button
               type="button"
-              className={`favorite-button ${favActive ? 'active' : ''}`}
+              className={`favorite-button ${isFavorite ? 'active' : ''}`}
               onClick={handleToggleFavorite}
               disabled={favBusy}
               aria-busy={favBusy}
-              aria-pressed={favActive}
-              aria-label={`${favActive ? '取消收藏' : '收藏'}《${book.title}》`}
+              aria-pressed={isFavorite}
+              aria-label={`${isFavorite ? '取消收藏' : '收藏'}《${book.title}》`}
             >
-              {favActive ? '★ 已收藏' : '☆ 收藏'}
+              {isFavorite ? '★ 已收藏' : '☆ 收藏'}
             </button>
           )}
         </div>
