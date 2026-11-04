@@ -468,6 +468,9 @@ function CasebookCard({
               className={`favorite-button ${favActive ? 'active' : ''}`}
               onClick={handleToggleFavorite}
               disabled={favBusy}
+              aria-busy={favBusy}
+              aria-pressed={favActive}
+              aria-label={`${favActive ? '取消收藏' : '收藏'}《${book.title}》`}
             >
               {favActive ? '★ 已收藏' : '☆ 收藏'}
             </button>

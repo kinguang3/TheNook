@@ -99,13 +99,14 @@ export function UserRating({
         className="user-rating-row"
         onMouseLeave={() => setPreview(0)}
       >
-        <div className="user-rating-stars">
+        <div className="user-rating-stars" role="group" aria-label="我的评分">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
               type="button"
               className={`star-button${value <= display ? " active" : ""}`}
               aria-label={`评分 ${value} 星`}
+              aria-pressed={value === rating}
               disabled={saveState.kind === "saving"}
               onMouseEnter={() => setPreview(value)}
               onFocus={() => setPreview(value)}

@@ -322,7 +322,11 @@ export function ReviewsClient({
                 {submitting ? "发表中…" : "发表评论"}
               </button>
             </div>
-            {formError ? <p className="form-error">{formError}</p> : null}
+            {formError ? (
+              <p className="form-error" role="alert">
+                {formError}
+              </p>
+            ) : null}
           </div>
         ) : (
           <div className="review-gate">

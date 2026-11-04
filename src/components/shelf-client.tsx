@@ -301,6 +301,7 @@ export function ShelfClient({
                 onClick={() => handleRemoveFromShelf(book.id)}
                 disabled={!isAuthed || busy.has(book.id)}
                 title="移出书架（取消收藏）"
+                aria-label={`将《${book.title}》移出书架`}
               >
                 移出书架
               </button>
