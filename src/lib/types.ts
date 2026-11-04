@@ -34,8 +34,10 @@ export type UserData = {
   notes: Record<string, string>;
 };
 
-// mutation 只回传实际变化的那一类，避免每次改动都重查 owner 的三张表
-export type UserDataPatch = Partial<UserData>;
+// mutation 只回传实际变化的数据；评分额外回传该书最新的聚合分
+export type UserDataPatch = Partial<UserData> & {
+  ratingStat?: RatingStatView | null;
+};
 
 export type ShelfStatus = "unread" | "reading" | "finished";
 
@@ -59,6 +61,11 @@ export type Review = {
 
 export type RatingStat = {
   bookId: string;
+  avgValue: number;
+  ratingCount: number;
+};
+
+export type RatingStatView = {
   avgValue: number;
   ratingCount: number;
 };

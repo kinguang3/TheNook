@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { setRating } from "@/app/actions/user-data";
+import type { RatingStatView } from "@/lib/types";
 
 type UserRatingProps = {
   bookId: string;
   initialRating: number | null;
   isAuthed: boolean;
+  onRatingChange?: (stat: RatingStatView | null) => void;
 };
 
 type SaveState =
@@ -20,6 +22,7 @@ export function UserRating({
   bookId,
   initialRating,
   isAuthed,
+  onRatingChange,
 }: UserRatingProps) {
   const [rating, setRatingValue] = useState(initialRating);
   const [preview, setPreview] = useState(0);
@@ -54,12 +57,15 @@ export function UserRating({
       const saved = result.data.ratings?.[bookId] ?? value;
       setRatingValue(saved);
       setSaveState({ kind: "saved", value: saved });
+      if (result.data.ratingStat !== undefined) {
+        onRatingChange?.(result.data.ratingStat);
+      }
       fadeTimerRef.current = window.setTimeout(
         () => setSaveState({ kind: "idle" }),
         2200,
       );
     },
-    [bookId, rating, saveState.kind],
+    [bookId, onRatingChange, rating, saveState.kind],
   );
 
   const display = preview > 0 ? preview : rating ?? 0;

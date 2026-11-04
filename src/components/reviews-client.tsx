@@ -8,13 +8,8 @@ import {
   updateReview,
 } from "@/app/actions/reviews";
 import { REVIEW_MAX_LENGTH } from "@/lib/types";
-import type { Book, Review } from "@/lib/types";
+import type { Book, RatingStatView, Review } from "@/lib/types";
 import { UserRating } from "@/components/user-rating";
-
-type RatingStatView = {
-  avgValue: number;
-  ratingCount: number;
-};
 
 type ReviewsClientProps = {
   book: Book;
@@ -39,6 +34,7 @@ export function ReviewsClient({
   initialRatingStat,
 }: ReviewsClientProps) {
   const [reviews, setReviews] = useState(initialReviews);
+  const [ratingStat, setRatingStat] = useState(initialRatingStat);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -137,13 +133,13 @@ export function ReviewsClient({
         </p>
         <div className="reviews-rating-row">
           <div>
-            {initialRatingStat ? (
+            {ratingStat ? (
               <>
                 <p className="rating-figure">
-                  {initialRatingStat.avgValue.toFixed(1)} / 5
+                  {ratingStat.avgValue.toFixed(1)} / 5
                 </p>
                 <p className="meta-text">
-                  读者综合评分，{initialRatingStat.ratingCount} 人参与
+                  读者综合评分，{ratingStat.ratingCount} 人参与
                 </p>
               </>
             ) : book.rating > 0 ? (
@@ -162,6 +158,7 @@ export function ReviewsClient({
             bookId={book.id}
             initialRating={initialUserRating}
             isAuthed={isAuthed}
+            onRatingChange={setRatingStat}
           />
         </div>
         <div className="card-links">

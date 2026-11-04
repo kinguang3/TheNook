@@ -3,7 +3,7 @@
 import { updateTag } from "next/cache";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { getFavorites, getNotes, getRatings } from "@/lib/data";
-import { NOTE_MAX_LENGTH, type UserDataPatch } from "@/lib/types";
+import { NOTE_MAX_LENGTH, type RatingStatView, type UserDataPatch } from "@/lib/types";
 
 export type UserDataResult =
   | { data?: UserDataPatch; error?: string }
@@ -75,8 +75,30 @@ export async function setRating(
   // 评分变化影响全站聚合分，主动失效缓存而不是等时间窗口
   updateTag("rating-stats");
 
-  // 只回传评分（唯一变化的一类）
-  return { data: { ratings: await getRatings(supabase, user.id) } };
+  // 同时回传最新聚合值：页面上「读者综合评分」无需刷新即可更新。
+  // 聚合查询失败时不影响评分本身成功，省略 ratingStat 让客户端保留旧值。
+  const [ratings, statResult] = await Promise.all([
+    getRatings(supabase, user.id),
+    supabase
+      .from("rating_stats")
+      .select("avg_value, rating_count")
+      .eq("book_id", bookId)
+      .maybeSingle(),
+  ]);
+
+  const data: UserDataPatch = { ratings };
+  if (!statResult.error) {
+    const row = statResult.data;
+    const ratingStat: RatingStatView | null = row
+      ? {
+          avgValue: Number(row.avg_value),
+          ratingCount: Number(row.rating_count),
+        }
+      : null;
+    data.ratingStat = ratingStat;
+  }
+
+  return { data };
 }
 
 export async function saveNote(
