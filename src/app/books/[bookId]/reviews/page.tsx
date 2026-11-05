@@ -69,6 +69,9 @@ export default async function BookReviewsPage(
     inLanguage: "zh-CN",
     url: absoluteUrl(`/books/${bookId}/reviews`),
   };
+  if (book.wikiUrl) {
+    bookSchema.sameAs = book.wikiUrl;
+  }
   if (stat && stat.ratingCount > 0) {
     bookSchema.aggregateRating = {
       "@type": "AggregateRating",

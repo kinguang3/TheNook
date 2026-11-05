@@ -8,6 +8,7 @@ import type {
   Series,
   ShelfData,
 } from "@/lib/types";
+import { WIKI_URLS } from "@/lib/wiki-links";
 
 const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
 
@@ -83,6 +84,7 @@ function mapBookRows(
     coverTone: book.cover_tone,
     coverMark: book.cover_mark,
     coverUrl: book.cover_url ?? "",
+    wikiUrl: WIKI_URLS[book.id] ?? "",
     rating: book.rating,
     tags: book.tags ?? [],
     blurb: book.blurb,

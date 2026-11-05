@@ -22,6 +22,7 @@ export type Book = {
   coverTone: string;
   coverMark: string;
   coverUrl: string;
+  wikiUrl: string;
   rating: number;
   tags: string[];
   blurb: string;

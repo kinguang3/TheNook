@@ -1,0 +1,15 @@
+export const WIKI_URLS: Record<string, string> = {
+  "the-greek-coffin-mystery": "https://en.wikipedia.org/wiki/The_Greek_Coffin_Mystery",
+  "murder-on-the-orient-express": "https://en.wikipedia.org/wiki/Murder_on_the_Orient_Express",
+  "and-then-there-were-none": "https://en.wikipedia.org/wiki/And_Then_There_Were_None",
+  "points-and-lines": "https://en.wikipedia.org/wiki/Points_and_Lines",
+  "tokyo-zodiac-murders": "https://en.wikipedia.org/wiki/The_Tokyo_Zodiac_Murders",
+  malice: "https://ja.wikipedia.org/wiki/%E6%82%AA%E6%84%8F_(%E5%B0%8F%E8%AA%AC)",
+  "journey-under-the-midnight-sun": "https://en.wikipedia.org/wiki/Journey_Under_the_Midnight_Sun",
+  "the-devotion-of-suspect-x": "https://en.wikipedia.org/wiki/The_Devotion_of_Suspect_X",
+  "the-decagon-house-murders": "https://en.wikipedia.org/wiki/The_Decagon_House_Murders",
+  "the-clock-house-murders": "https://ja.wikipedia.org/wiki/%E6%99%82%E8%A8%88%E9%A4%A8%E3%81%AE%E6%AE%BA%E4%BA%BA",
+  kuroshikkan: "https://ja.wikipedia.org/wiki/%E9%BB%92%E6%AD%BB%E9%A4%A8%E6%AE%BA%E4%BA%BA%E4%BA%8B%E4%BB%B6",
+  rashomon: "https://en.wikipedia.org/wiki/Rash%C5%8Dmon_(short_story)",
+  "the-roger-ackroyd-murder-case": "https://en.wikipedia.org/wiki/The_Murder_of_Roger_Ackroyd",
+};

@@ -185,6 +185,17 @@ export function ReviewsClient({
               系列专题
             </Link>
           ) : null}
+          {book.wikiUrl ? (
+            <a
+              className="info-link"
+              href={book.wikiUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`在维基百科查看《${book.title}》（新窗口）`}
+            >
+              维基百科 ↗
+            </a>
+          ) : null}
         </div>
       </section>
 
