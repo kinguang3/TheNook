@@ -278,7 +278,12 @@ export function ShelfClient({
               </div>
 
               <div className="shelf-title">
-                <span className="shelf-book-title">{book.title}</span>
+                <Link
+                  className="shelf-book-title shelf-book-link"
+                  href={`/books/${book.id}/reviews`}
+                >
+                  {book.title}
+                </Link>
                 <span className="meta-text">{book.authorName}</span>
               </div>
 
