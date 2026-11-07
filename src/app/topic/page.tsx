@@ -166,7 +166,9 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
                   <span className="cover-mark">{book.coverMark}</span>
                 )}
               </div>
-              <h3>{book.title}</h3>
+              <h3>
+                <Link href={`/books/${book.id}/reviews`}>{book.title}</Link>
+              </h3>
               <p>
                 {book.authorName}，{book.seriesName}
               </p>
