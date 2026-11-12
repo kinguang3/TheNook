@@ -941,6 +941,88 @@ body.sidebar-resizing {
   line-height: 1.7;
 }
 
+/* ---------- 路由骨架屏 ---------- */
+
+.skeleton-list {
+  display: grid;
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.skeleton-stack {
+  display: grid;
+  flex: 1;
+  gap: 9px;
+}
+
+.skeleton-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.skeleton-block,
+.skeleton-line {
+  display: block;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(233, 227, 214, 0.05) 25%,
+    rgba(233, 227, 214, 0.12) 37%,
+    rgba(233, 227, 214, 0.05) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.6s ease infinite;
+}
+
+.skeleton-cover {
+  width: 44px;
+  height: 60px;
+  flex: none;
+}
+
+.skeleton-line {
+  height: 0.85rem;
+}
+
+.skeleton-line-title {
+  width: min(320px, 70%);
+  height: 1.6rem;
+}
+
+.skeleton-line-wide {
+  width: min(520px, 80%);
+}
+
+.skeleton-line-short {
+  width: min(220px, 45%);
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block,
+  .skeleton-line {
+    animation: none;
+  }
+}
+
 .auth-switch,
 .auth-forgot {
   margin: 16px 0 0;
