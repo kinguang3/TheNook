@@ -412,6 +412,7 @@ function CasebookCard({
   const avgRating = rating?.avg ?? 0
   const ratingCount = rating?.count ?? 0
   const [favBusy, setFavBusy] = useState(false)
+  const [favError, setFavError] = useState('')
 
   // Determine series indicator
   const seriesIndicator = book.seriesName !== '单行本' ? book.seriesName : ''
@@ -419,11 +420,22 @@ function CasebookCard({
   const handleToggleFavorite = async () => {
     if (favBusy || !isLoggedIn) return
     setFavBusy(true)
+    setFavError('')
     try {
-      const nextFavorites = (await toggleFavorite(book.id))?.data?.favorites
+      const result = await toggleFavorite(book.id)
+      if (result?.error) {
+        setFavError(result.error)
+        return
+      }
+      const nextFavorites = result?.data?.favorites
       if (nextFavorites) {
         onFavoriteChange(book.id, nextFavorites.includes(book.id))
+      } else {
+        setFavError('收藏状态未更新，请稍后再试。')
       }
+    } catch {
+      // 网络异常时退出 busy 并提示，避免按钮静默失效
+      setFavError('网络异常，收藏未保存。')
     } finally {
       setFavBusy(false)
     }
@@ -493,6 +505,12 @@ function CasebookCard({
             </button>
           )}
         </div>
+
+        {favError ? (
+          <p className="form-error" role="alert">
+            {favError}
+          </p>
+        ) : null}
       </div>
     </div>
   )
