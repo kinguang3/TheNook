@@ -176,6 +176,8 @@ export function ShelfClient({
     };
   }, []);
 
+  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
+
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const entryOfInner = (book: Book) =>
@@ -185,7 +187,7 @@ export function ShelfClient({
         lastReadAt: null,
       };
     return books
-      .filter((book) => favorites.includes(book.id))
+      .filter((book) => favoriteSet.has(book.id))
       .map((book) => ({ book, entry: entryOfInner(book) }))
       .filter(({ book }) => {
         if (filter !== "all" && entryOfInner(book).status !== filter) {
@@ -203,7 +205,7 @@ export function ShelfClient({
         }
         return a.book.title.localeCompare(b.book.title, "zh-Hans-CN");
       });
-  }, [books, shelf, favorites, query, filter]);
+  }, [books, shelf, favoriteSet, query, filter]);
 
   const filters: { key: Filter; label: string }[] = [
     { key: "all", label: "全部" },
