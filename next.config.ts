@@ -1,5 +1,19 @@
 import type { NextConfig } from "next";
 
+// 封面放在 Supabase Storage 里：域名跟随 NEXT_PUBLIC_SUPABASE_URL，
+// 换项目时无需再手改 next.config.ts。
+function supabaseImageHost(): string {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (url) {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      // 配置格式错误时保留旧域名，避免构建期直接失败
+    }
+  }
+  return "exixzgnhsyjnsrgzhrct.supabase.co";
+}
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
@@ -10,7 +24,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "exixzgnhsyjnsrgzhrct.supabase.co",
+        hostname: supabaseImageHost(),
       },
     ],
   },

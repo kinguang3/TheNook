@@ -64,7 +64,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-同时把 `next.config.ts` 的 `images.remotePatterns[0].hostname` 改成你的 Supabase 项目域名，否则封面图会被图片优化器拒绝。
+封面域名由 `next.config.ts` 自动从 `NEXT_PUBLIC_SUPABASE_URL` 推导，通常无需手改；若链接里用的是自定义域名，请同步调整 `images.remotePatterns`。
 
 ### 4. 配置封面存储
 
