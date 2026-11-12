@@ -11,15 +11,18 @@ export const metadata: Metadata = {
 };
 
 export default async function ShelfPage() {
-  const { supabase, user } = await getCurrentUser();
-
   const emptyShelf: ShelfData = {};
   // 书单走缓存，书架与收藏按用户实时查；书架页不渲染评分/笔记，不必拉那两张表
-  const [books, shelfData, favorites] = await Promise.all([
+  const [{ supabase, user }, books] = await Promise.all([
+    getCurrentUser(),
     getBooks(),
-    user ? getShelfData(supabase, user.id) : Promise.resolve(emptyShelf),
-    user ? getFavorites(supabase, user.id) : Promise.resolve<string[]>([]),
   ]);
+  const [shelfData, favorites] = user
+    ? await Promise.all([
+        getShelfData(supabase, user.id),
+        getFavorites(supabase, user.id),
+      ])
+    : [emptyShelf, [] as string[]];
 
   return (
     <main>

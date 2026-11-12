@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const { supabase, user } = await getCurrentUser();
-
-  // 图书目录与评分聚合走缓存；首页只渲染收藏状态，不必要地拉评分和笔记
-  const [books, ratingStats, favorites] = await Promise.all([
+  // 会话、图书目录与评分聚合互不依赖，一起发出请求；
+  // 首页只渲染收藏状态，不必要地拉评分和笔记
+  const [{ supabase, user }, books, ratingStats] = await Promise.all([
+    getCurrentUser(),
     getBooks(),
     getRatingStats(),
-    user ? getFavorites(supabase, user.id) : Promise.resolve<string[]>([]),
   ]);
+  const favorites = user ? await getFavorites(supabase, user.id) : [];
 
   return (
     <HomeClient

@@ -49,16 +49,16 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
     notFound();
   }
 
-  // 目录数据走缓存；当前用户与个人笔记一起并行取，去掉串行等待
-  const { supabase, user } = await getCurrentUser();
-  const [authors, seriesList, books, notes] = await Promise.all([
+  // 目录数据走缓存；会话与目录互不依赖，一起发出请求，之后只补一次个人笔记
+  const [{ supabase, user }, authors, seriesList, books] = await Promise.all([
+    getCurrentUser(),
     getAuthors(),
     getSeries(),
     getBooks(),
-    user
-      ? getNotes(supabase, user.id)
-      : Promise.resolve<Record<string, string>>({}),
   ]);
+  const notes = user
+    ? await getNotes(supabase, user.id)
+    : ({} as Record<string, string>);
 
   // 主题、关联系列/作者都要反复按 id 查，先建 Map 避免多次线性扫描
   const authorsById = new Map(authors.map((author) => [author.id, author]));

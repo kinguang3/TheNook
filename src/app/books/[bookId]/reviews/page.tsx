@@ -38,14 +38,16 @@ export default async function BookReviewsPage(
 ) {
   const { bookId } = await props.params;
 
-  // 书单与评分聚合走缓存
-  const books = await getBooks();
+  // 会话与缓存书单互不依赖：先并行取回，再校验书籍是否存在
+  const [{ supabase, user }, books] = await Promise.all([
+    getCurrentUser(),
+    getBooks(),
+  ]);
   const book = books.find((entry) => entry.id === bookId);
   if (!book) {
     notFound();
   }
 
-  const { supabase, user } = await getCurrentUser();
   // 书评、评分聚合与「当前这本书」的个人评分并行查
   const [reviews, ratingStats, initialUserRating] = await Promise.all([
     getReviewsByBook(bookId),
