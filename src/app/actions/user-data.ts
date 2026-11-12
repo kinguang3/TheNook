@@ -2,7 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { getFavorites, getNotes, getRatings } from "@/lib/data";
+import { getFavorites, getNotes } from "@/lib/data";
 import { NOTE_MAX_LENGTH, type RatingStatView, type UserDataPatch } from "@/lib/types";
 
 export type UserDataResult =
@@ -77,16 +77,14 @@ export async function setRating(
 
   // 同时回传最新聚合值：页面上「读者综合评分」无需刷新即可更新。
   // 聚合查询失败时不影响评分本身成功，省略 ratingStat 让客户端保留旧值。
-  const [ratings, statResult] = await Promise.all([
-    getRatings(supabase, user.id),
-    supabase
-      .from("rating_stats")
-      .select("avg_value, rating_count")
-      .eq("book_id", bookId)
-      .maybeSingle(),
-  ]);
+  // 只回传当前这本书的评分，省掉重新拉取用户全部评分的往返。
+  const statResult = await supabase
+    .from("rating_stats")
+    .select("avg_value, rating_count")
+    .eq("book_id", bookId)
+    .maybeSingle();
 
-  const data: UserDataPatch = { ratings };
+  const data: UserDataPatch = { ratings: { [bookId]: value } };
   if (!statResult.error) {
     const row = statResult.data;
     const ratingStat: RatingStatView | null = row
