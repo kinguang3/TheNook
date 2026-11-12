@@ -440,7 +440,7 @@ function CasebookCard({
               fill
               sizes="(max-width: 420px) 72px, (max-width: 640px) 84px, 104px"
               className="cover-image"
-              priority={priority}
+              preload={priority}
             />
           ) : (
             <div className={`cover-placeholder ${book.coverTone}`}>

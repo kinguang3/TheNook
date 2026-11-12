@@ -160,7 +160,7 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
                     alt={`${book.title} 封面`}
                     fill
                     sizes="(max-width: 420px) 90vw, (max-width: 640px) 45vw, 300px"
-                    priority={index === 0}
+                    preload={index === 0}
                   />
                 ) : (
                   <span className="cover-mark">{book.coverMark}</span>
