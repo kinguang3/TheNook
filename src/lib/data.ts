@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import type {
@@ -123,7 +124,11 @@ async function fetchCatalog(): Promise<{
   };
 }
 
-const getCatalog = unstable_cache(fetchCatalog, ["catalog"], CATALOG_CACHE);
+// generateMetadata 与页面会同时请求目录：React cache 按请求去重，
+// 冷缓存时也不会对同一张表并发查两次；unstable_cache 继续负责跨请求缓存。
+const getCatalog = cache(
+  unstable_cache(fetchCatalog, ["catalog"], CATALOG_CACHE),
+);
 
 export async function getAuthors(): Promise<Author[]> {
   return (await getCatalog()).authors;
