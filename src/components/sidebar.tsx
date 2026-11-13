@@ -43,11 +43,18 @@ export function Sidebar({ userEmail }: SidebarProps) {
 
   useEffect(() => {
     document.documentElement.style.setProperty("--sidebar-w", `${width}px`);
-    try {
-      localStorage.setItem("sidebar-width", String(width));
-    } catch {
-      // 隐私模式等禁用存储时忽略，宽度仍对当前页面生效
-    }
+  }, [width]);
+
+  // 拖拽时 width 每帧都在变：延迟写入 localStorage，避免同步 I/O 阻塞拖动
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem("sidebar-width", String(width));
+      } catch {
+        // 隐私模式等禁用存储时忽略，宽度仍对当前页面生效
+      }
+    }, 200);
+    return () => window.clearTimeout(timer);
   }, [width]);
 
   const resizeBy = useCallback((delta: number) => {
