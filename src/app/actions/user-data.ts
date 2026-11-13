@@ -2,7 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { getFavorites, getNotes } from "@/lib/data";
+import { getNotes } from "@/lib/data";
 import { NOTE_MAX_LENGTH, type RatingStatView, type UserDataPatch } from "@/lib/types";
 
 export type UserDataResult =
@@ -46,8 +46,10 @@ export async function toggleFavorite(
     }
   }
 
-  // 只回传发生变化的收藏列表，省掉评分 / 笔记两张表的往返
-  return { data: { favorites: await getFavorites(supabase, user.id) } };
+  // 只回传被切换的那本书：省掉重新拉取全部收藏的往返与传输
+  return {
+    data: { favoriteState: { bookId, active: !existing } },
+  };
 }
 
 export async function setRating(

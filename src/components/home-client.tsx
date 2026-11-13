@@ -428,9 +428,9 @@ const CasebookCard = memo(function CasebookCard({
         setFavError(result.error)
         return
       }
-      const nextFavorites = result?.data?.favorites
-      if (nextFavorites) {
-        onFavoriteChange(book.id, nextFavorites.includes(book.id))
+      const next = result?.data?.favoriteState
+      if (next?.bookId === book.id) {
+        onFavoriteChange(book.id, next.active)
       } else {
         setFavError('收藏状态未更新，请稍后再试。')
       }

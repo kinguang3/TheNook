@@ -157,11 +157,17 @@ export function ShelfClient({
         setError(result.error);
         return;
       }
-      const nextFavorites = result?.data?.favorites;
-      if (nextFavorites) {
-        setFavorites(nextFavorites);
-        setError("");
+      const next = result?.data?.favoriteState;
+      if (next?.bookId !== bookId) {
+        setError("收藏状态未更新，请稍后再试。");
+        return;
       }
+      if (next.active) {
+        setError("收藏状态已变化，请刷新后再试。");
+        return;
+      }
+      setFavorites((prev) => prev.filter((id) => id !== bookId));
+      setError("");
     } catch {
       setError("网络异常，未能移出书架。");
     } finally {

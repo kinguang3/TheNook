@@ -38,6 +38,7 @@ export type UserData = {
 // mutation 只回传实际变化的数据；评分额外回传该书最新的聚合分
 export type UserDataPatch = Partial<UserData> & {
   ratingStat?: RatingStatView | null;
+  favoriteState?: { bookId: string; active: boolean };
 };
 
 export type ShelfStatus = "unread" | "reading" | "finished";
