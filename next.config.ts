@@ -1,17 +1,33 @@
 import type { NextConfig } from "next";
 
-// 封面放在 Supabase Storage 里：域名跟随 NEXT_PUBLIC_SUPABASE_URL，
-// 换项目时无需再手改 next.config.ts。
-function supabaseImageHost(): string {
+// 封面放在 Supabase Storage 里：域名/协议/端口跟随 NEXT_PUBLIC_SUPABASE_URL，
+// 换项目或改连本地 Supabase 时无需再手改 next.config.ts。
+type SupabaseImagePattern = {
+  protocol: "http" | "https";
+  hostname: string;
+  port?: string;
+};
+
+const FALLBACK_SUPABASE_IMAGE: SupabaseImagePattern = {
+  protocol: "https",
+  hostname: "exixzgnhsyjnsrgzhrct.supabase.co",
+};
+
+function supabaseImagePattern(): SupabaseImagePattern {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (url) {
     try {
-      return new URL(url).hostname;
+      const parsed = new URL(url);
+      return {
+        protocol: parsed.protocol === "http:" ? "http" : "https",
+        hostname: parsed.hostname,
+        ...(parsed.port ? { port: parsed.port } : {}),
+      };
     } catch {
       // 配置格式错误时保留旧域名，避免构建期直接失败
     }
   }
-  return "exixzgnhsyjnsrgzhrct.supabase.co";
+  return FALLBACK_SUPABASE_IMAGE;
 }
 
 const nextConfig: NextConfig = {
@@ -21,12 +37,7 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     // 封面按固定路径存放，优化结果缓存 31 天，减少边缘重复转换
     minimumCacheTTL: 2678400,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: supabaseImageHost(),
-      },
-    ],
+    remotePatterns: [supabaseImagePattern()],
   },
   async headers() {
     return [
