@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Book, RatingStat } from '@/lib/types'
@@ -58,14 +58,14 @@ export default function HomeClient({
   )
   const timelineRef = useRef<HTMLDivElement>(null)
 
-  const handleFavoriteChange = (bookId: string, active: boolean) => {
+  const handleFavoriteChange = useCallback((bookId: string, active: boolean) => {
     setFavoriteIds((prev) => {
       const next = new Set(prev)
       if (active) next.add(bookId)
       else next.delete(bookId)
       return next
     })
-  }
+  }, [])
 
   const ratingMap = useMemo(() => {
     const map = new Map<string, { avg: number; count: number }>()
@@ -400,7 +400,8 @@ interface CasebookCardProps {
   priority?: boolean
 }
 
-function CasebookCard({
+// 收藏变化只影响一张卡：memo 避免整条时间线跟着父级状态一起重渲染
+const CasebookCard = memo(function CasebookCard({
   book,
   caseNum,
   rating,
@@ -514,4 +515,4 @@ function CasebookCard({
       </div>
     </div>
   )
-}
+})
