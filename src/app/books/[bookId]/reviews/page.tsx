@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/server";
 import {
   getBooks,
   getRatingForBook,
-  getRatingStats,
+  getRatingStatForBook,
   getReviewsByBook,
 } from "@/lib/data";
 import { absoluteUrl } from "@/lib/site";
@@ -48,13 +48,12 @@ export default async function BookReviewsPage(
     notFound();
   }
 
-  // 书评、评分聚合与「当前这本书」的个人评分并行查
-  const [reviews, ratingStats, initialUserRating] = await Promise.all([
+  // 书评、当前书的评分聚合与个人评分并行查
+  const [reviews, stat, initialUserRating] = await Promise.all([
     getReviewsByBook(bookId),
-    getRatingStats(),
+    getRatingStatForBook(bookId),
     user ? getRatingForBook(supabase, user.id, bookId) : Promise.resolve(null),
   ]);
-  const stat = ratingStats.find((entry) => entry.bookId === bookId) ?? null;
 
   // 结构化数据：公开书目 + 聚合评分 + 页面上可见的书评。
   // 只使用真实存在的数据，没有评分/书评时不编造字段。

@@ -168,6 +168,30 @@ export const getRatingStats = unstable_cache(
   RATING_STATS_CACHE,
 );
 
+async function fetchRatingStatForBook(
+  bookId: string,
+): Promise<RatingStat | null> {
+  const supabase = publicClient();
+  const { data, error } = await supabase
+    .from("rating_stats")
+    .select("book_id, avg_value, rating_count")
+    .eq("book_id", bookId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    bookId: data.book_id as string,
+    avgValue: Number(data.avg_value),
+    ratingCount: Number(data.rating_count),
+  };
+}
+
+// 书评页只需要当前这本书的聚合分：单行缓存比每次拉回全站聚合更省流量
+export const getRatingStatForBook = unstable_cache(
+  fetchRatingStatForBook,
+  ["rating-stat"],
+  RATING_STATS_CACHE,
+);
+
 export async function getFavorites(
   supabase: SupabaseClient,
   userId: string,
