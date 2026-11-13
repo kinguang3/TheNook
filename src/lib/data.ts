@@ -44,7 +44,15 @@ function publicClient() {
       "缺少 NEXT_PUBLIC_SUPABASE_URL 或 NEXT_PUBLIC_SUPABASE_ANON_KEY 环境变量。",
     );
   }
-  return createClient(url, key);
+  // 公开数据只带 anon key，不需要会话持久化/自动刷新：
+  // 关掉后避免在服务端创建无用的 auth 定时器与存储监听
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }
 
 type BookRow = {
