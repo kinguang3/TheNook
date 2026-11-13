@@ -56,9 +56,6 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
     getSeries(),
     getBooks(),
   ]);
-  const notes = user
-    ? await getNotes(supabase, user.id)
-    : ({} as Record<string, string>);
 
   // 主题、关联系列/作者都要反复按 id 查，先建 Map 避免多次线性扫描
   const authorsById = new Map(authors.map((author) => [author.id, author]));
@@ -78,6 +75,15 @@ export default async function TopicPage({ searchParams }: TopicPageProps) {
       type === "author" ? book.authorId === id : book.seriesId === id,
     )
     .sort((a, b) => a.year - b.year);
+
+  // 只取当前专题书目的笔记：主题不存在时也不会白发一次查询
+  const notes = user
+    ? await getNotes(
+        supabase,
+        user.id,
+        topicBooks.map((book) => book.id),
+      )
+    : ({} as Record<string, string>);
 
   const label = type === "author" ? "作者" : "系列";
 

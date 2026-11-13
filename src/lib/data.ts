@@ -184,11 +184,19 @@ export async function getRatings(
 export async function getNotes(
   supabase: SupabaseClient,
   userId: string,
+  bookIds?: string[],
 ): Promise<Record<string, string>> {
-  const { data } = await supabase
+  // 专题页只需要当前书单的笔记；传入空列表时直接跳过查询
+  if (bookIds && bookIds.length === 0) return {};
+
+  const base = supabase
     .from("notes")
     .select("book_id, content")
     .eq("user_id", userId);
+  const { data } = bookIds
+    ? await base.in("book_id", bookIds)
+    : await base;
+
   return Object.fromEntries(
     (data ?? []).map((row) => [row.book_id, row.content as string]),
   );
