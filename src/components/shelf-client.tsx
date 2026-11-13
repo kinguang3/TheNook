@@ -65,7 +65,8 @@ export function ShelfClient({
       return;
     }
     if (entry.data) {
-      setShelf(entry.data);
+      // 服务端只回传变更的那本书，按 bookId 合并可保留其他书的乐观状态
+      setShelf((prev) => ({ ...prev, ...entry.data }));
       setError("");
     }
   };

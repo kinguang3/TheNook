@@ -1,7 +1,6 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/supabase/server";
-import { getShelfData } from "@/lib/data";
 import type { ShelfData, ShelfStatus } from "@/lib/types";
 
 export type ShelfResult =
@@ -20,6 +19,26 @@ function deriveStatus(progress: number): ShelfStatus {
   return "unread";
 }
 
+type ShelfRow = {
+  book_id: string;
+  progress: number;
+  status: string;
+  last_read_at: string | null;
+};
+
+// 只回传本次变更的书：客户端按 bookId 合并，避免整张书架来回传输
+function toShelfPatch(row: ShelfRow): ShelfData {
+  const status = row.status as ShelfStatus;
+  if (!shelfStatuses.has(status)) return {};
+  return {
+    [row.book_id]: {
+      progress: Number(row.progress),
+      status,
+      lastReadAt: row.last_read_at,
+    },
+  };
+}
+
 export async function setProgress(
   bookId: string,
   progressValue: number,
@@ -35,23 +54,27 @@ export async function setProgress(
 
   const progress = Math.min(Math.max(Math.round(progressValue), 0), 100);
 
-  const { error } = await supabase.from("shelf").upsert(
-    {
-      user_id: user.id,
-      book_id: bookId,
-      progress,
-      status: deriveStatus(progress),
-      last_read_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,book_id" },
-  );
-  if (error) {
+  // upsert + select 一次往返拿回写入后的行，省掉重新查询整张书架
+  const { data, error } = await supabase
+    .from("shelf")
+    .upsert(
+      {
+        user_id: user.id,
+        book_id: bookId,
+        progress,
+        status: deriveStatus(progress),
+        last_read_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,book_id" },
+    )
+    .select("book_id, progress, status, last_read_at")
+    .single();
+  if (error || !data) {
     return { error: "进度更新失败，请稍后再试。" };
   }
 
-  // 复用同一客户端与会话：后续查询不再新建连接
-  return { data: await getShelfData(supabase, user.id) };
+  return { data: toShelfPatch(data as ShelfRow) };
 }
 
 export async function setStatus(
@@ -87,14 +110,14 @@ export async function setStatus(
     record.progress = progress;
   }
 
-  const { error } = await supabase.from("shelf").upsert(
-    record,
-    { onConflict: "user_id,book_id" },
-  );
-  if (error) {
+  const { data, error } = await supabase
+    .from("shelf")
+    .upsert(record, { onConflict: "user_id,book_id" })
+    .select("book_id, progress, status, last_read_at")
+    .single();
+  if (error || !data) {
     return { error: "状态更新失败，请稍后再试。" };
   }
 
-  // 复用同一客户端与会话：后续查询不再新建连接
-  return { data: await getShelfData(supabase, user.id) };
+  return { data: toShelfPatch(data as ShelfRow) };
 }
