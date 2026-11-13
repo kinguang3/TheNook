@@ -99,10 +99,16 @@ async function fetchCatalog(): Promise<{
   books: Book[];
 }> {
   const supabase = publicClient();
+  // 显式列出需要的列：既不扩展到未来新增字段，也避免把无用大字段带进缓存
   const [authorsResult, seriesResult, booksResult] = await Promise.all([
-    supabase.from("authors").select("*"),
-    supabase.from("series").select("*"),
-    supabase.from("books").select("*").order("year"),
+    supabase.from("authors").select("id, name, summary"),
+    supabase.from("series").select("id, name, summary"),
+    supabase
+      .from("books")
+      .select(
+        "id, title, author_id, series_id, year, read_time, cover_tone, cover_mark, cover_url, rating, tags, blurb, note",
+      )
+      .order("year"),
   ]);
 
   // 任一查询失败即抛出，避免把空目录写进跨请求缓存；
