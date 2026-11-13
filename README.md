@@ -64,7 +64,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-封面域名由 `next.config.ts` 自动从 `NEXT_PUBLIC_SUPABASE_URL` 推导，通常无需手改；若链接里用的是自定义域名，请同步调整 `images.remotePatterns`。
+封面图片的协议、域名与端口由 `next.config.ts` 自动从 `NEXT_PUBLIC_SUPABASE_URL` 推导（本地 Supabase 同样适用），通常无需手改；若链接里用的是自定义域名，请同步调整 `images.remotePatterns`。
 
 ### 4. 配置封面存储
 
