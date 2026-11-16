@@ -24,6 +24,10 @@ export default async function ShelfPage() {
       ])
     : [emptyShelf, [] as string[]];
 
+  // 书架只展示已收藏的书：只序列化这部分，避免把整份目录发给客户端
+  const favoriteSet = new Set(favorites);
+  const shelfBooks = books.filter((book) => favoriteSet.has(book.id));
+
   return (
     <main>
       <section className="section-block">
@@ -48,7 +52,7 @@ export default async function ShelfPage() {
         )}
 
         <ShelfClient
-          books={books}
+          books={shelfBooks}
           initialShelf={shelfData}
           initialFavorites={favorites}
           isAuthed={Boolean(user)}
