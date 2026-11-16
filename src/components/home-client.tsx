@@ -4,7 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Book, RatingStat } from '@/lib/types'
-import { toggleFavorite } from '@/app/actions/user-data'
+import { setFavorite } from '@/app/actions/user-data'
 
 type SortKey = 'year' | 'rating'
 type RegionFilter = 'all' | 'uk' | 'jp'
@@ -423,7 +423,7 @@ const CasebookCard = memo(function CasebookCard({
     setFavBusy(true)
     setFavError('')
     try {
-      const result = await toggleFavorite(book.id)
+      const result = await setFavorite(book.id, !isFavorite)
       if (result?.error) {
         setFavError(result.error)
         return

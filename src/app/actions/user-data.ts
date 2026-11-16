@@ -9,25 +9,26 @@ export type UserDataResult =
   | { data?: UserDataPatch; error?: string }
   | undefined;
 
-export async function toggleFavorite(
+// 客户端已知目标状态：直接写目标状态，省掉“先查是否存在”的那次数据库往返。
+// 两个分支都是幂等的——重复收藏 / 重复取消都不会报错。
+export async function setFavorite(
   bookId: string,
+  active: boolean,
 ): Promise<UserDataResult> {
   const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }
 
-  const { data: existing, error: lookupError } = await supabase
-    .from("favorites")
-    .select("book_id")
-    .eq("user_id", user.id)
-    .eq("book_id", bookId)
-    .maybeSingle();
-  if (lookupError) {
-    return { error: "收藏失败，请稍后再试。" };
-  }
-
-  if (existing) {
+  if (active) {
+    const { error } = await supabase.from("favorites").upsert(
+      { user_id: user.id, book_id: bookId },
+      { onConflict: "user_id,book_id", ignoreDuplicates: true },
+    );
+    if (error) {
+      return { error: "收藏失败，请稍后再试。" };
+    }
+  } else {
     const { error } = await supabase
       .from("favorites")
       .delete()
@@ -36,20 +37,10 @@ export async function toggleFavorite(
     if (error) {
       return { error: "取消收藏失败，请稍后再试。" };
     }
-  } else {
-    const { error } = await supabase.from("favorites").insert({
-      user_id: user.id,
-      book_id: bookId,
-    });
-    if (error) {
-      return { error: "收藏失败，请稍后再试。" };
-    }
   }
 
   // 只回传被切换的那本书：省掉重新拉取全部收藏的往返与传输
-  return {
-    data: { favoriteState: { bookId, active: !existing } },
-  };
+  return { data: { favoriteState: { bookId, active } } };
 }
 
 export async function setRating(
