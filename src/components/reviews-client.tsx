@@ -35,8 +35,6 @@ export function ReviewsClient({
 }: ReviewsClientProps) {
   const [reviews, setReviews] = useState(initialReviews);
   const [ratingStat, setRatingStat] = useState(initialRatingStat);
-  const [content, setContent] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -44,31 +42,6 @@ export function ReviewsClient({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isAuthed = Boolean(currentUserId);
-  const trimmedLength = content.trim().length;
-  const canSubmit =
-    isAuthed && !submitting && trimmedLength > 0 && trimmedLength <= REVIEW_MAX_LENGTH;
-
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
-    setSubmitting(true);
-    setFormError("");
-    try {
-      const result = await createReview(book.id, content);
-      const created = result.review;
-      if (result.error) {
-        setFormError(result.error);
-        return;
-      }
-      if (created) {
-        setReviews((prev) => [created, ...prev]);
-        setContent("");
-      }
-    } catch {
-      setFormError("网络异常，书评未发表，请稍后再试。");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const startEdit = (review: Review) => {
     setEditingId(review.id);
@@ -296,58 +269,109 @@ export function ReviewsClient({
             })}
           </div>
         )}
+
+        {formError ? (
+          <p className="form-error" role="alert">
+            {formError}
+          </p>
+        ) : null}
       </section>
 
-      <section
-        className="section-block"
-        id="review-form"
-        aria-labelledby="review-form-title"
-      >
-        <div className="section-head">
-          <div>
-            <h3 id="review-form-title">写下你的书评</h3>
-          </div>
-        </div>
-
-        {isAuthed ? (
-          <div className="review-box">
-            <textarea
-              className="review-textarea"
-              value={content}
-              maxLength={REVIEW_MAX_LENGTH}
-              placeholder={`关于《${book.title}》的判断、动机分析或余味……`}
-              onChange={(event) => setContent(event.target.value)}
-              rows={5}
-              aria-label="书评内容"
-            />
-            <div className="review-form-foot">
-              <span className="meta-text">
-                {trimmedLength} / {REVIEW_MAX_LENGTH}
-              </span>
-              <button
-                type="button"
-                className="favorite-button"
-                onClick={handleSubmit}
-                disabled={!canSubmit}
-              >
-                {submitting ? "发表中…" : "发表评论"}
-              </button>
-            </div>
-            {formError ? (
-              <p className="form-error" role="alert">
-                {formError}
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <div className="review-gate">
-            <p>请登录后发表评论。</p>
-            <Link className="favorite-button" href="/login">
-              前往登录
-            </Link>
-          </div>
-        )}
-      </section>
+      <ReviewComposer
+        book={book}
+        isAuthed={isAuthed}
+        onCreated={(created) => setReviews((prev) => [created, ...prev])}
+      />
     </>
+  );
+}
+
+type ReviewComposerProps = {
+  book: Book;
+  isAuthed: boolean;
+  onCreated: (review: Review) => void;
+};
+
+// 输入区独立持有草稿状态：打字时只重渲染这一段，不带动整份书评列表
+function ReviewComposer({ book, isAuthed, onCreated }: ReviewComposerProps) {
+  const [content, setContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const trimmedLength = content.trim().length;
+  const canSubmit =
+    isAuthed && !submitting && trimmedLength > 0 && trimmedLength <= REVIEW_MAX_LENGTH;
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    setFormError("");
+    try {
+      const result = await createReview(book.id, content);
+      if (result.error) {
+        setFormError(result.error);
+        return;
+      }
+      if (result.review) {
+        onCreated(result.review);
+        setContent("");
+      }
+    } catch {
+      setFormError("网络异常，书评未发表，请稍后再试。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section
+      className="section-block"
+      id="review-form"
+      aria-labelledby="review-form-title"
+    >
+      <div className="section-head">
+        <div>
+          <h3 id="review-form-title">写下你的书评</h3>
+        </div>
+      </div>
+
+      {isAuthed ? (
+        <div className="review-box">
+          <textarea
+            className="review-textarea"
+            value={content}
+            maxLength={REVIEW_MAX_LENGTH}
+            placeholder={`关于《${book.title}》的判断、动机分析或余味……`}
+            onChange={(event) => setContent(event.target.value)}
+            rows={5}
+            aria-label="书评内容"
+          />
+          <div className="review-form-foot">
+            <span className="meta-text">
+              {trimmedLength} / {REVIEW_MAX_LENGTH}
+            </span>
+            <button
+              type="button"
+              className="favorite-button"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+            >
+              {submitting ? "发表中…" : "发表评论"}
+            </button>
+          </div>
+          {formError ? (
+            <p className="form-error" role="alert">
+              {formError}
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <div className="review-gate">
+          <p>请登录后发表评论。</p>
+          <Link className="favorite-button" href="/login">
+            前往登录
+          </Link>
+        </div>
+      )}
+    </section>
   );
 }
