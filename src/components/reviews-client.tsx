@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import {
   createReview,
@@ -40,19 +40,42 @@ export function ReviewsClient({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isAuthed = Boolean(currentUserId);
+  const deletingIdRef = useRef<string | null>(null);
 
-  const startEdit = (review: Review) => {
-    setEditingId(review.id);
+  const startEdit = useCallback((reviewId: string) => {
+    setEditingId(reviewId);
     setFormError("");
-  };
+  }, []);
 
-  const cancelEdit = () => {
+  const cancelEdit = useCallback(() => {
     setEditingId(null);
-  };
+  }, []);
 
-  const handleDelete = async (review: Review) => {
-    if (deletingId) return;
+  const handleReviewSaved = useCallback(
+    (
+      reviewId: string,
+      updated: Pick<Review, "id" | "content" | "updatedAt">,
+    ) => {
+      setReviews((prev) =>
+        prev.map((entry) =>
+          entry.id === reviewId
+            ? {
+                ...entry,
+                content: updated.content,
+                updatedAt: updated.updatedAt,
+              }
+            : entry,
+        ),
+      );
+      setEditingId(null);
+    },
+    [],
+  );
+
+  const handleDelete = useCallback(async (review: Review) => {
+    if (deletingIdRef.current) return;
     if (!window.confirm("确定删除这条书评吗？")) return;
+    deletingIdRef.current = review.id;
     setDeletingId(review.id);
     try {
       const result = await deleteReview(review.id);
@@ -64,9 +87,10 @@ export function ReviewsClient({
     } catch {
       setFormError("网络异常，删除未完成，请稍后再试。");
     } finally {
+      deletingIdRef.current = null;
       setDeletingId(null);
     }
-  };
+  }, []);
 
   return (
     <>
@@ -149,75 +173,19 @@ export function ReviewsClient({
           <p className="meta-text">还没有书评，来写下第一条吧。</p>
         ) : (
           <div className="review-list">
-            {reviews.map((review) => {
-              const isOwn = review.userId === currentUserId;
-              const isEditing = editingId === review.id;
-
-              return (
-                <article
-                  key={review.id}
-                  id={`review-${review.id}`}
-                  className="review-card"
-                >
-                  <div className="review-meta-row">
-                    <span className="review-author">
-                      {review.authorName}
-                      {isOwn ? "（我）" : ""}
-                    </span>
-                    <span className="meta-text">
-                      {formatDate(review.createdAt)}
-                      {review.updatedAt !== review.createdAt ? "（已编辑）" : ""}
-                    </span>
-                  </div>
-
-                  {isEditing ? (
-                    <ReviewEditor
-                      review={review}
-                      onCancel={cancelEdit}
-                      onSaved={(updated) => {
-                        // 仅更新内容与时间，保留原有作者昵称
-                        setReviews((prev) =>
-                          prev.map((entry) =>
-                            entry.id === review.id
-                              ? {
-                                  ...entry,
-                                  content: updated.content,
-                                  updatedAt: updated.updatedAt,
-                                }
-                              : entry,
-                          ),
-                        );
-                        cancelEdit();
-                      }}
-                    />
-                  ) : (
-                    <>
-                      <p className="review-content">{review.content}</p>
-                      {isOwn ? (
-                        <div className="review-actions">
-                          <button
-                            type="button"
-                            className="tag-button"
-                            onClick={() => startEdit(review)}
-                            disabled={deletingId === review.id}
-                          >
-                            编辑
-                          </button>
-                          <button
-                            type="button"
-                            className="tag-button"
-                            onClick={() => handleDelete(review)}
-                            disabled={deletingId === review.id}
-                          >
-                            {deletingId === review.id ? "删除中…" : "删除"}
-                          </button>
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-                </article>
-              );
-            })}
+            {reviews.map((review) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                isOwn={review.userId === currentUserId}
+                isEditing={editingId === review.id}
+                isDeleting={deletingId === review.id}
+                onStartEdit={startEdit}
+                onCancelEdit={cancelEdit}
+                onSaved={handleReviewSaved}
+                onDelete={handleDelete}
+              />
+            ))}
           </div>
         )}
 
@@ -236,6 +204,79 @@ export function ReviewsClient({
     </>
   );
 }
+
+type ReviewCardProps = {
+  review: Review;
+  isOwn: boolean;
+  isEditing: boolean;
+  isDeleting: boolean;
+  onStartEdit: (reviewId: string) => void;
+  onCancelEdit: () => void;
+  onSaved: (
+    reviewId: string,
+    updated: Pick<Review, "id" | "content" | "updatedAt">,
+  ) => void;
+  onDelete: (review: Review) => void;
+};
+
+// 行级 memo：评分变化、删除态变化时，未受影响的评论不重渲染
+const ReviewCard = memo(function ReviewCard({
+  review,
+  isOwn,
+  isEditing,
+  isDeleting,
+  onStartEdit,
+  onCancelEdit,
+  onSaved,
+  onDelete,
+}: ReviewCardProps) {
+  return (
+    <article id={`review-${review.id}`} className="review-card">
+      <div className="review-meta-row">
+        <span className="review-author">
+          {review.authorName}
+          {isOwn ? "（我）" : ""}
+        </span>
+        <span className="meta-text">
+          {formatDate(review.createdAt)}
+          {review.updatedAt !== review.createdAt ? "（已编辑）" : ""}
+        </span>
+      </div>
+
+      {isEditing ? (
+        <ReviewEditor
+          review={review}
+          onCancel={onCancelEdit}
+          onSaved={(updated) => onSaved(review.id, updated)}
+        />
+      ) : (
+        <>
+          <p className="review-content">{review.content}</p>
+          {isOwn ? (
+            <div className="review-actions">
+              <button
+                type="button"
+                className="tag-button"
+                onClick={() => onStartEdit(review.id)}
+                disabled={isDeleting}
+              >
+                编辑
+              </button>
+              <button
+                type="button"
+                className="tag-button"
+                onClick={() => onDelete(review)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "删除中…" : "删除"}
+              </button>
+            </div>
+          ) : null}
+        </>
+      )}
+    </article>
+  );
+});
 
 type ReviewEditorProps = {
   review: Review;
