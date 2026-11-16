@@ -31,6 +31,7 @@ export function Sidebar({ userEmail }: SidebarProps) {
   // 视觉宽度由 layout 里的内联脚本提前恢复，挂载后再同步状态与 aria 值。
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const skipInitialWidthEffect = useRef(true);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     try {
@@ -64,6 +65,9 @@ export function Sidebar({ userEmail }: SidebarProps) {
     return () => window.clearTimeout(timer);
   }, [width]);
 
+  // 拖拽中途卸载时也要移除 document 监听与拖拽状态类
+  useEffect(() => () => dragCleanupRef.current?.(), []);
+
   const resizeBy = useCallback((delta: number) => {
     setWidth((current) =>
       Math.min(Math.max(current + delta, MIN_WIDTH), MAX_WIDTH),
@@ -91,25 +95,46 @@ export function Sidebar({ userEmail }: SidebarProps) {
 
   const handleResizeStart = useCallback((event: React.PointerEvent) => {
     event.preventDefault();
+    dragCleanupRef.current?.();
     const startX = event.clientX;
     const startWidth = width;
+    const resizer = event.currentTarget;
+    let latest = startWidth;
+    let dirty = false;
 
+    // 拖动期间直接写 CSS 变量，只在松手时同步 React 状态：
+    // 避免每个 pointermove 都重渲染侧边栏与导航
     const handleMove = (moveEvent: PointerEvent) => {
-      const next = Math.min(
+      latest = Math.min(
         Math.max(startWidth + (moveEvent.clientX - startX), MIN_WIDTH),
         MAX_WIDTH,
       );
-      setWidth(next);
+      if (latest === startWidth && !dirty) return;
+      dirty = true;
+      document.documentElement.style.setProperty(
+        "--sidebar-w",
+        `${latest}px`,
+      );
+      resizer.setAttribute("aria-valuenow", String(latest));
     };
 
-    const handleUp = () => {
+    function cleanup() {
       document.removeEventListener("pointermove", handleMove);
       document.removeEventListener("pointerup", handleUp);
+      document.removeEventListener("pointercancel", handleUp);
       document.body.classList.remove("sidebar-resizing");
-    };
+      dragCleanupRef.current = null;
+    }
 
+    function handleUp() {
+      cleanup();
+      if (dirty) setWidth(latest);
+    }
+
+    dragCleanupRef.current = cleanup;
     document.addEventListener("pointermove", handleMove);
     document.addEventListener("pointerup", handleUp);
+    document.addEventListener("pointercancel", handleUp);
     document.body.classList.add("sidebar-resizing");
   }, [width]);
 
