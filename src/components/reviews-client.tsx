@@ -37,52 +37,17 @@ export function ReviewsClient({
   const [ratingStat, setRatingStat] = useState(initialRatingStat);
   const [formError, setFormError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState("");
-  const [editBusy, setEditBusy] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isAuthed = Boolean(currentUserId);
 
   const startEdit = (review: Review) => {
     setEditingId(review.id);
-    setEditContent(review.content);
     setFormError("");
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditContent("");
-  };
-
-  const handleSaveEdit = async (review: Review) => {
-    const trimmed = editContent.trim();
-    if (!trimmed || trimmed.length > REVIEW_MAX_LENGTH || editBusy) return;
-    setEditBusy(true);
-    try {
-      const result = await updateReview(review.id, trimmed);
-      const updated = result.review;
-      if (updated) {
-        // 仅更新内容与时间，保留原有作者昵称
-        setReviews((prev) =>
-          prev.map((entry) =>
-            entry.id === review.id
-              ? {
-                  ...entry,
-                  content: updated.content,
-                  updatedAt: updated.updatedAt,
-                }
-              : entry,
-          ),
-        );
-        cancelEdit();
-      } else if (result.error) {
-        setFormError(result.error);
-      }
-    } catch {
-      setFormError("网络异常，修改未保存，请稍后再试。");
-    } finally {
-      setEditBusy(false);
-    }
   };
 
   const handleDelete = async (review: Review) => {
@@ -206,39 +171,25 @@ export function ReviewsClient({
                   </div>
 
                   {isEditing ? (
-                    <div className="review-edit-box">
-                      <textarea
-                        className="review-textarea"
-                        value={editContent}
-                        maxLength={REVIEW_MAX_LENGTH}
-                        onChange={(event) =>
-                          setEditContent(event.target.value)
-                        }
-                        aria-label="编辑书评"
-                      />
-                      <div className="review-actions">
-                        <button
-                          type="button"
-                          className="favorite-button active"
-                          onClick={() => handleSaveEdit(review)}
-                          disabled={
-                            editBusy ||
-                            !editContent.trim() ||
-                            editContent.trim().length > REVIEW_MAX_LENGTH
-                          }
-                        >
-                          {editBusy ? "保存中…" : "保存"}
-                        </button>
-                        <button
-                          type="button"
-                          className="tag-button"
-                          onClick={cancelEdit}
-                          disabled={editBusy}
-                        >
-                          取消
-                        </button>
-                      </div>
-                    </div>
+                    <ReviewEditor
+                      review={review}
+                      onCancel={cancelEdit}
+                      onSaved={(updated) => {
+                        // 仅更新内容与时间，保留原有作者昵称
+                        setReviews((prev) =>
+                          prev.map((entry) =>
+                            entry.id === review.id
+                              ? {
+                                  ...entry,
+                                  content: updated.content,
+                                  updatedAt: updated.updatedAt,
+                                }
+                              : entry,
+                          ),
+                        );
+                        cancelEdit();
+                      }}
+                    />
                   ) : (
                     <>
                       <p className="review-content">{review.content}</p>
@@ -283,6 +234,79 @@ export function ReviewsClient({
         onCreated={(created) => setReviews((prev) => [created, ...prev])}
       />
     </>
+  );
+}
+
+type ReviewEditorProps = {
+  review: Review;
+  onSaved: (review: Review) => void;
+  onCancel: () => void;
+};
+
+// 编辑草稿也留在局部：输入时不会让整份书评列表跟着重渲染
+function ReviewEditor({ review, onSaved, onCancel }: ReviewEditorProps) {
+  const [content, setContent] = useState(review.content);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const trimmed = content.trim();
+  const canSave =
+    !busy && trimmed.length > 0 && trimmed.length <= REVIEW_MAX_LENGTH;
+
+  const handleSave = async () => {
+    if (!canSave) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await updateReview(review.id, trimmed);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      if (result.review) {
+        onSaved(result.review);
+      } else {
+        setError("修改未保存，请稍后再试。");
+      }
+    } catch {
+      setError("网络异常，修改未保存，请稍后再试。");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="review-edit-box">
+      <textarea
+        className="review-textarea"
+        value={content}
+        maxLength={REVIEW_MAX_LENGTH}
+        onChange={(event) => setContent(event.target.value)}
+        aria-label="编辑书评"
+      />
+      <div className="review-actions">
+        <button
+          type="button"
+          className="favorite-button active"
+          onClick={handleSave}
+          disabled={!canSave}
+        >
+          {busy ? "保存中…" : "保存"}
+        </button>
+        <button
+          type="button"
+          className="tag-button"
+          onClick={onCancel}
+          disabled={busy}
+        >
+          取消
+        </button>
+      </div>
+      {error ? (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
