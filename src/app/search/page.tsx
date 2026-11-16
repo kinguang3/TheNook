@@ -23,17 +23,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
 
   // 搜索需登录：未登录直接跳转登录页
-  const { user } = await getCurrentUser();
-  if (!user) {
-    redirect("/login");
-  }
-
-  // 目录与评分聚合走缓存
-  const [books, authors, ratingStats] = await Promise.all([
+  // 会话校验与缓存目录/评分并行，避免串行等待
+  const [{ user }, books, authors, ratingStats] = await Promise.all([
+    getCurrentUser(),
     getBooks(),
     getAuthors(),
     getRatingStats(),
   ]);
+  if (!user) {
+    redirect("/login");
+  }
   const ratingAverages = Object.fromEntries(
     ratingStats.map((stat) => [stat.bookId, stat.avgValue]),
   );
