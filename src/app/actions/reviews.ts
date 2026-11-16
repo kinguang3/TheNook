@@ -7,6 +7,7 @@ import type { Review } from "@/lib/types";
 
 export type ReviewMutationResult = {
   review?: Review;
+  updatedReview?: Pick<Review, "id" | "content" | "updatedAt">;
   bookId?: string;
   error?: string;
 };
@@ -91,14 +92,13 @@ export async function updateReview(
   }
 
   // 同时按 id 与 user_id 过滤：即使 RLS 失效也不会改到他人评论
+  // 只回传变更后的字段：作者昵称等未变内容客户端已有，无需再联查 profiles
   const { data, error } = await supabase
     .from("reviews")
     .update({ content: content.trim(), updated_at: new Date().toISOString() })
     .eq("id", reviewId)
     .eq("user_id", user.id)
-    .select(
-      "id, book_id, user_id, content, created_at, updated_at, profiles(display_name)",
-    )
+    .select("id, content, updated_at")
     .maybeSingle();
 
   if (error) {
@@ -110,19 +110,11 @@ export async function updateReview(
 
   updateTag("reviews");
 
-  const profile = (
-    data as unknown as { profiles: { display_name: string } | null }
-  ).profiles;
-
   return {
-    review: {
+    updatedReview: {
       id: data.id as string,
-      bookId: data.book_id as string,
-      userId: data.user_id as string,
       content: data.content as string,
-      createdAt: data.created_at as string,
       updatedAt: data.updated_at as string,
-      authorName: profile?.display_name ?? "匿名侦探",
     },
   };
 }

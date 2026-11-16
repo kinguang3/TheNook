@@ -239,7 +239,7 @@ export function ReviewsClient({
 
 type ReviewEditorProps = {
   review: Review;
-  onSaved: (review: Review) => void;
+  onSaved: (review: Pick<Review, "id" | "content" | "updatedAt">) => void;
   onCancel: () => void;
 };
 
@@ -262,8 +262,8 @@ function ReviewEditor({ review, onSaved, onCancel }: ReviewEditorProps) {
         setError(result.error);
         return;
       }
-      if (result.review) {
-        onSaved(result.review);
+      if (result.updatedReview) {
+        onSaved(result.updatedReview);
       } else {
         setError("修改未保存，请稍后再试。");
       }
