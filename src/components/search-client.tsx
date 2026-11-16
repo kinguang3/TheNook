@@ -58,39 +58,58 @@ export function SearchClient({
     return counts;
   }, [books]);
 
+  // 目录只变一次：预先拼好小写检索串，避免每次输入都对每个字段重复 toLowerCase
+  const searchIndex = useMemo(() => {
+    const bookEntries = books.map((book) => ({
+      book,
+      text: [
+        book.title,
+        book.blurb,
+        book.authorName,
+        book.seriesName,
+        ...book.tags,
+      ]
+        .join("\n")
+        .toLowerCase(),
+      timelineText: [book.title, String(book.year), book.readTime, ...book.tags]
+        .join("\n")
+        .toLowerCase(),
+    }));
+    const authorEntries = authors.map((author) => ({
+      author,
+      text: `${author.name}\n${author.summary}`.toLowerCase(),
+    }));
+    return { bookEntries, authorEntries };
+  }, [authors, books]);
+
   const results = useMemo(() => {
     if (!hasKeyword) return null;
 
-    const matchText = (text: string) => text.toLowerCase().includes(keyword);
     // 书籍维度：不含 note（用户私人笔记）
-    const matchBook = (book: Book) =>
-      matchText(book.title) ||
-      matchText(book.blurb) ||
-      matchText(book.authorName) ||
-      matchText(book.seriesName) ||
-      book.tags.some(matchText);
-
-    const matchedAuthors = authors.filter((author) => {
-      if (matchText(author.name) || matchText(author.summary)) return true;
-      // 作者相关书籍命中同样算作者命中；filter 天然保证同一作者只出现一次
-      return books.some(
-        (book) => book.authorId === author.id && matchBook(book),
-      );
-    });
-
-    const matchedBooks = books.filter(matchBook);
-
-    // 时间线维度：定位节点用 title / year / readTime / tags
-    const timelineItems = books.filter(
-      (book) =>
-        matchText(book.title) ||
-        String(book.year).includes(keyword) ||
-        matchText(book.readTime) ||
-        book.tags.some(matchText),
+    const matchedBookEntries = searchIndex.bookEntries.filter((entry) =>
+      entry.text.includes(keyword),
+    );
+    const matchedAuthorIds = new Set(
+      matchedBookEntries.map((entry) => entry.book.authorId),
     );
 
+    const matchedAuthors = searchIndex.authorEntries
+      .filter(
+        (entry) =>
+          entry.text.includes(keyword) ||
+          matchedAuthorIds.has(entry.author.id),
+      )
+      .map((entry) => entry.author);
+
+    const matchedBooks = matchedBookEntries.map((entry) => entry.book);
+
+    // 时间线维度：定位节点用 title / year / readTime / tags
+    const timelineItems = searchIndex.bookEntries
+      .filter((entry) => entry.timelineText.includes(keyword))
+      .map((entry) => entry.book);
+
     return { matchedAuthors, matchedBooks, timelineItems };
-  }, [hasKeyword, keyword, authors, books]);
+  }, [hasKeyword, keyword, searchIndex]);
 
   const totalResults = results
     ? results.matchedAuthors.length +
