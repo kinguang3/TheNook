@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -27,21 +27,28 @@ const NAV_ITEMS: {
 
 export function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname();
-  // 初始值直接读 localStorage（SSR 时回到默认值，且不参与渲染输出），
-  // 避免先渲染 240px 再在 effect 里改成保存值造成的首屏跳动
-  const [width, setWidth] = useState(() => {
-    if (typeof window === "undefined") return DEFAULT_WIDTH;
-    try {
-      const saved = Number(window.localStorage.getItem("sidebar-width"));
-      return Number.isFinite(saved) && saved >= MIN_WIDTH && saved <= MAX_WIDTH
-        ? saved
-        : DEFAULT_WIDTH;
-    } catch {
-      return DEFAULT_WIDTH;
-    }
-  });
+  // 首屏统一用默认宽度，避免 SSR 与客户端读 localStorage 后首帧不一致；
+  // 视觉宽度由 layout 里的内联脚本提前恢复，挂载后再同步状态与 aria 值。
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const skipInitialWidthEffect = useRef(true);
 
   useEffect(() => {
+    try {
+      const saved = Number(window.localStorage.getItem("sidebar-width"));
+      if (Number.isFinite(saved) && saved >= MIN_WIDTH && saved <= MAX_WIDTH) {
+        setWidth(saved);
+      }
+    } catch {
+      // 隐私模式等禁用存储时保持默认宽度
+    }
+  }, []);
+
+  useEffect(() => {
+    // 首个 effect 已由内联脚本恢复视觉宽度，这里跳过默认值写入
+    if (skipInitialWidthEffect.current) {
+      skipInitialWidthEffect.current = false;
+      return;
+    }
     document.documentElement.style.setProperty("--sidebar-w", `${width}px`);
   }, [width]);
 
