@@ -48,6 +48,7 @@ next-env.d.ts
 # editor & misc
 /.vscode/
 OpenCode-*.md
+.dsh-acl-rec/
 
 # dev logs
 dev.log
