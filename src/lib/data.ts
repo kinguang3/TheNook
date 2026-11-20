@@ -211,19 +211,6 @@ export async function getFavorites(
   return (data ?? []).map((row) => row.book_id);
 }
 
-export async function getRatings(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<Record<string, number>> {
-  const { data } = await supabase
-    .from("ratings")
-    .select("book_id, value")
-    .eq("user_id", userId);
-  return Object.fromEntries(
-    (data ?? []).map((row) => [row.book_id, row.value as number]),
-  );
-}
-
 export async function getNotes(
   supabase: SupabaseClient,
   userId: string,
