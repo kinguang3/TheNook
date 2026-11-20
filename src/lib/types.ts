@@ -29,14 +29,9 @@ export type Book = {
   note: string;
 };
 
-export type UserData = {
-  favorites: string[];
-  ratings: Record<string, number>;
-  notes: Record<string, string>;
-};
-
 // mutation 只回传实际变化的数据；评分额外回传该书最新的聚合分
-export type UserDataPatch = Partial<UserData> & {
+export type UserDataPatch = {
+  ratings?: Record<string, number>;
   ratingStat?: RatingStatView | null;
   favoriteState?: { bookId: string; active: boolean };
 };
@@ -73,5 +68,3 @@ export type RatingStatView = {
 };
 
 export const REVIEW_MAX_LENGTH = 2000;
-
-export const NOTE_MAX_LENGTH = 2000;
