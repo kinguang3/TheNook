@@ -777,7 +777,6 @@ body.sidebar-resizing {
   border-bottom-color: var(--accent);
 }
 
-.tag-list,
 .topic-links {
   display: flex;
   flex-wrap: wrap;
@@ -1171,8 +1170,7 @@ body.sidebar-resizing {
   margin-top: 4px;
 }
 
-.user-rating-stars,
-.star-group {
+.user-rating-stars {
   display: inline-flex;
   gap: 2px;
 }
