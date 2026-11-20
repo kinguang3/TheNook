@@ -38,6 +38,10 @@ export type UserDataPatch = {
 
 export type ShelfStatus = "unread" | "reading" | "finished";
 
+export function isShelfStatus(value: unknown): value is ShelfStatus {
+  return value === "unread" || value === "reading" || value === "finished";
+}
+
 export type ShelfEntry = {
   progress: number;
   status: ShelfStatus;

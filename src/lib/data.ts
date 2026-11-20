@@ -9,9 +9,8 @@ import type {
   Series,
   ShelfData,
 } from "@/lib/types";
+import { isShelfStatus } from "@/lib/types";
 import { WIKI_URLS } from "@/lib/wiki-links";
-
-const shelfRowStatuses = new Set(["unread", "reading", "finished"]);
 
 // 目录数据（authors / series / books）是公开只读、极少变动的种子内容：
 // 用不带 Cookie 的 anon 客户端读取，并交给 unstable_cache 跨请求缓存，
@@ -258,11 +257,10 @@ export async function getShelfData(
 
   const shelf: ShelfData = {};
   for (const row of data ?? []) {
-    const status = row.status as "unread" | "reading" | "finished";
-    if (!shelfRowStatuses.has(status)) continue;
+    if (!isShelfStatus(row.status)) continue;
     shelf[row.book_id as string] = {
       progress: row.progress as number,
-      status,
+      status: row.status,
       lastReadAt: row.last_read_at as string | null,
     };
   }

@@ -1,17 +1,12 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/supabase/server";
+import { isShelfStatus } from "@/lib/types";
 import type { ShelfData, ShelfStatus } from "@/lib/types";
 
 export type ShelfResult =
   | { data?: ShelfData; error?: string }
   | undefined;
-
-const shelfStatuses = new Set<ShelfStatus>([
-  "unread",
-  "reading",
-  "finished",
-]);
 
 function deriveStatus(progress: number): ShelfStatus {
   if (progress >= 100) return "finished";
@@ -28,12 +23,11 @@ type ShelfRow = {
 
 // 只回传本次变更的书：客户端按 bookId 合并，避免整张书架来回传输
 function toShelfPatch(row: ShelfRow): ShelfData {
-  const status = row.status as ShelfStatus;
-  if (!shelfStatuses.has(status)) return {};
+  if (!isShelfStatus(row.status)) return {};
   return {
     [row.book_id]: {
       progress: Number(row.progress),
-      status,
+      status: row.status,
       lastReadAt: row.last_read_at,
     },
   };
@@ -79,14 +73,14 @@ export async function setProgress(
 
 export async function setStatus(
   bookId: string,
-  status: ShelfStatus,
+  status: string,
 ): Promise<ShelfResult> {
   const { supabase, user } = await getCurrentUser();
   if (!user) {
     return { error: "请先登录后操作。" };
   }
 
-  if (!shelfStatuses.has(status)) {
+  if (!isShelfStatus(status)) {
     return { error: "无效的阅读状态。" };
   }
 
