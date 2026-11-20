@@ -8,7 +8,6 @@ import type { Review } from "@/lib/types";
 export type ReviewMutationResult = {
   review?: Review;
   updatedReview?: Pick<Review, "id" | "content" | "updatedAt">;
-  bookId?: string;
   error?: string;
 };
 
@@ -132,7 +131,7 @@ export async function deleteReview(
     .delete()
     .eq("id", reviewId)
     .eq("user_id", user.id)
-    .select("book_id")
+    .select("id")
     .maybeSingle();
 
   if (error) {
@@ -144,5 +143,5 @@ export async function deleteReview(
 
   updateTag("reviews");
 
-  return { bookId: data.book_id as string };
+  return {};
 }
