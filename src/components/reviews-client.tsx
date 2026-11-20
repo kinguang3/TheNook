@@ -9,6 +9,7 @@ import {
 } from "@/app/actions/reviews";
 import { REVIEW_MAX_LENGTH } from "@/lib/types";
 import type { Book, RatingStatView, Review } from "@/lib/types";
+import { formatDate } from "@/lib/format";
 import { UserRating } from "@/components/user-rating";
 
 type ReviewsClientProps = {
@@ -18,13 +19,6 @@ type ReviewsClientProps = {
   initialUserRating: number | null;
   initialRatingStat: RatingStatView | null;
 };
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "--";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
-}
 
 export function ReviewsClient({
   book,

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { setProgress, setStatus } from "@/app/actions/shelf";
 import { setFavorite } from "@/app/actions/user-data";
+import { formatDate } from "@/lib/format";
 import type { Book, ShelfData, ShelfEntry, ShelfStatus } from "@/lib/types";
 
 type ShelfClientProps = {
@@ -27,14 +28,6 @@ const NEXT_STATUS: Record<ShelfStatus, ShelfStatus> = {
   reading: "finished",
   finished: "unread",
 };
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "--";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "--";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
-}
 
 export function ShelfClient({
   books,
