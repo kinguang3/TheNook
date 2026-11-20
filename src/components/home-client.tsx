@@ -231,6 +231,19 @@ export default function HomeClient({
 
   const hasActiveFilters = regionFilter !== 'all' || eraFilter !== 'all' || typeFilter !== 'all'
 
+  const renderBookCard = (book: Book) => (
+    <CasebookCard
+      key={book.id}
+      book={book}
+      caseNum={caseNumbers.get(book.id) || 0}
+      rating={ratingMap.get(book.id)}
+      isFavorite={favoriteIds.has(book.id)}
+      onFavoriteChange={handleFavoriteChange}
+      isLoggedIn={isLoggedIn}
+      priority={book.id === leadBookId}
+    />
+  )
+
   return (
     <>
       <main>
@@ -337,44 +350,12 @@ export default function HomeClient({
                 <div className="year-rail">
                   <span className="year-number">{year}</span>
                 </div>
-                <div className="year-books">
-                  {books.map((book) => {
-                    const caseNum = caseNumbers.get(book.id) || 0
-                    const rating = ratingMap.get(book.id)
-                    return (
-                      <CasebookCard
-                        key={book.id}
-                        book={book}
-                        caseNum={caseNum}
-                        rating={rating}
-                        isFavorite={favoriteIds.has(book.id)}
-                        onFavoriteChange={handleFavoriteChange}
-                        isLoggedIn={isLoggedIn}
-                        priority={book.id === leadBookId}
-                      />
-                    )
-                  })}
-                </div>
+                <div className="year-books">{books.map(renderBookCard)}</div>
               </div>
             ))
           ) : (
             // Flat list view for rating sort
-            filteredBooks.map((book) => {
-              const caseNum = caseNumbers.get(book.id) || 0
-              const rating = ratingMap.get(book.id)
-              return (
-                <CasebookCard
-                  key={book.id}
-                  book={book}
-                  caseNum={caseNum}
-                  rating={rating}
-                  isFavorite={favoriteIds.has(book.id)}
-                  onFavoriteChange={handleFavoriteChange}
-                  isLoggedIn={isLoggedIn}
-                  priority={book.id === leadBookId}
-                />
-              )
-            })
+            filteredBooks.map(renderBookCard)
           )}
         </div>
       </main>
