@@ -155,6 +155,20 @@ export async function getBooks(): Promise<Book[]> {
   return (await getCatalog()).books;
 }
 
+type RatingStatRow = {
+  book_id: string;
+  avg_value: number;
+  rating_count: number;
+};
+
+function toRatingStat(row: RatingStatRow): RatingStat {
+  return {
+    bookId: row.book_id,
+    avgValue: Number(row.avg_value),
+    ratingCount: Number(row.rating_count),
+  };
+}
+
 async function fetchRatingStats(): Promise<RatingStat[]> {
   const supabase = publicClient();
   // rating_stats 是聚合视图（视图未在 Supabase 创建时查询失败，返回空数组回退档案评分）
@@ -162,11 +176,7 @@ async function fetchRatingStats(): Promise<RatingStat[]> {
     .from("rating_stats")
     .select("book_id, avg_value, rating_count");
   if (error) return [];
-  return (data ?? []).map((row) => ({
-    bookId: row.book_id as string,
-    avgValue: Number(row.avg_value),
-    ratingCount: Number(row.rating_count),
-  }));
+  return (data ?? []).map(toRatingStat);
 }
 
 export const getRatingStats = unstable_cache(
@@ -185,11 +195,7 @@ async function fetchRatingStatForBook(
     .eq("book_id", bookId)
     .maybeSingle();
   if (error || !data) return null;
-  return {
-    bookId: data.book_id as string,
-    avgValue: Number(data.avg_value),
-    ratingCount: Number(data.rating_count),
-  };
+  return toRatingStat(data);
 }
 
 // 书评页只需要当前这本书的聚合分：单行缓存比每次拉回全站聚合更省流量
