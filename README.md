@@ -120,9 +120,11 @@ src/
 ├── lib/
 │   ├── supabase/                       # 服务端客户端（cookie 会话）；浏览器客户端仅恢复链接懒加载
 │   ├── pkce-recovery.ts                # 密码重置 PKCE 工具（验证符 / 挑战 / Cookie 名）
+│   ├── auth-session.ts                 # proxy 验签后写入的用户请求头常量（供 RSC 复用）
 │   ├── site.ts                         # 站点常量（URL / 名称 / 描述）
 │   ├── og-image.tsx                    # satori 分享图渲染
 │   ├── data.ts                         # 数据读取与缓存边界
+│   ├── wiki-links.ts                   # 维基百科条目映射（Book.wikiUrl / JSON-LD sameAs）
 │   └── types.ts                        # 领域类型
 └── proxy.ts                            # 会话刷新代理（Next.js 16 替代 middleware）
 supabase/schema.sql                     # 全量建表 + RLS + 触发器 + 种子数据 + 聚合视图
@@ -137,8 +139,6 @@ recommendation/                         # 推荐引擎（Python，离线运行�
 ├── verify_algo.py                      # 算法回归验证（含边界场景）
 └── stress_test.py                      # 随机压力测试（12 项检查）
 ```
-
-> `public/` 下的 `index.html` / `app.js` 等是早期静态原型，线上路由不使用。
 
 ## 性能与缓存
 
