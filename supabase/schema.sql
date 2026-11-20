@@ -91,6 +91,14 @@ create table if not exists public.reviews (
   updated_at timestamptz not null default now()
 );
 
+-- 书评页按书取最新评论、个人中心按用户取评论：与增量迁移保持一致，
+-- 新建库也走索引，避免全表扫描 + 排序
+create index if not exists idx_reviews_book_created
+  on public.reviews (book_id, created_at desc);
+
+create index if not exists idx_reviews_user
+  on public.reviews (user_id, created_at desc);
+
 -- ---------- Row Level Security ----------
 
 alter table public.authors enable row level security;
