@@ -15,34 +15,43 @@ export async function proxy(request: NextRequest) {
   const pendingCookies: PendingCookie[] = [];
   let cookieHeaders: Record<string, string> = {};
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet, headers) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          pendingCookies.push(...cookiesToSet);
-          // 新版 @supabase/ssr 会附带 no-store 响应头，避免带会话的响应被 CDN 缓存
-          cookieHeaders = { ...cookieHeaders, ...headers };
-        },
-      },
-    },
-  );
+  // 没有 Supabase 会话 Cookie 时（绝大多数匿名访问）跳过建客户端与验签：
+  // 省掉一次客户端初始化与 claims 解析。判断失误也不会出错——请求头缺失时
+  // getCurrentUser 会回退到 getUser，只是多一次 Auth 往返。
+  const mayHaveSession = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
 
   // 官方 Next.js SSR 集成推荐用 getClaims：校验 JWT 的同时顺带刷新过期会话
   // （非对称签名下本地验签，对称密钥时自动回退 getUser）。
   let claims: { sub?: string; email?: unknown } | undefined;
-  try {
-    const { data } = await supabase.auth.getClaims();
-    claims = data?.claims;
-  } catch {
-    // 验签/刷新临时失败时按未登录处理：不阻断页面渲染，RSC 会回退到 getUser 兜底
+  if (mayHaveSession) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet, headers) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value),
+            );
+            pendingCookies.push(...cookiesToSet);
+            // 新版 @supabase/ssr 会附带 no-store 响应头，避免带会话的响应被 CDN 缓存
+            cookieHeaders = { ...cookieHeaders, ...headers };
+          },
+        },
+      },
+    );
+
+    try {
+      const { data } = await supabase.auth.getClaims();
+      claims = data?.claims;
+    } catch {
+      // 验签/刷新临时失败时按未登录处理：不阻断页面渲染，RSC 会回退到 getUser 兜底
+    }
   }
 
   // 用户头必须由 proxy 重新生成：先删掉客户端可能伪造的值，验签通过再写回。
