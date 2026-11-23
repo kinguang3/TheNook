@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { SITE_URL } from "@/lib/site";
 import {
   NOOK_PKCE_COOKIE,
   generateRecoveryVerifier,
@@ -13,13 +14,6 @@ export type AuthState = {
   error?: string;
   message?: string;
 };
-
-function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(
-    /\/+$/,
-    "",
-  );
-}
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "Invalid login credentials": "邮箱或密码错误，请重新输入",
@@ -111,7 +105,7 @@ export async function login(
       const resent = await resendSignupEmail(
         supabase,
         email,
-        `${siteUrl()}/auth/callback`,
+        `${SITE_URL}/auth/callback`,
       );
       return resent.error
         ? { message: "邮箱尚未验证，请先查收验证邮件；如未收到，请稍后重试。" }
@@ -135,7 +129,7 @@ export async function signup(
   }
 
   const supabase = await createClient();
-  const emailRedirectTo = `${siteUrl()}/auth/callback`;
+  const emailRedirectTo = `${SITE_URL}/auth/callback`;
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -182,7 +176,7 @@ export async function resetPassword(
   const verifier = generateRecoveryVerifier();
   const codeChallenge = await recoveryChallenge(verifier);
   // nk 让 verifier 随邮件链接走：换设备点击时没有自持 cookie，链接自带兜底
-  const redirectTarget = `${siteUrl()}/auth/callback?nk=${verifier}`;
+  const redirectTarget = `${SITE_URL}/auth/callback?nk=${verifier}`;
   const recoverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTarget)}`;
 
   let status: number;
