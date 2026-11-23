@@ -45,12 +45,12 @@ export function UserRating({
 
       try {
         const result = await setRating(bookId, value);
-        if (!result?.data || result.error) {
+        if (!result.data || result.error) {
           // 以服务器结果为准：失败时回滚显示并提示
           setRatingValue(previous);
           setSaveState({
             kind: "error",
-            message: result?.error ?? "保存失败，请稍后再试。",
+            message: result.error ?? "保存失败，请稍后再试。",
           });
           return;
         }

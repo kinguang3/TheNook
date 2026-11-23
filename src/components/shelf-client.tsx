@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { setProgress, setStatus } from "@/app/actions/shelf";
+import { setProgress, setStatus, type ShelfResult } from "@/app/actions/shelf";
 import { setFavorite } from "@/app/actions/user-data";
 import { formatDate } from "@/lib/format";
 import { deriveShelfStatus } from "@/lib/types";
@@ -52,16 +52,14 @@ export function ShelfClient({
   const [error, setError] = useState("");
   const timersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
-  const applyServerResult = useCallback((result: unknown) => {
-    if (!result || typeof result !== "object") return;
-    const entry = result as { data?: ShelfData; error?: string };
-    if (entry.error) {
-      setError(entry.error);
+  const applyServerResult = useCallback((result: ShelfResult) => {
+    if (result.error) {
+      setError(result.error);
       return;
     }
-    if (entry.data) {
+    if (result.data) {
       // 服务端只回传变更的那本书，按 bookId 合并可保留其他书的乐观状态
-      setShelf((prev) => ({ ...prev, ...entry.data }));
+      setShelf((prev) => ({ ...prev, ...result.data }));
       setError("");
     }
   }, []);
@@ -158,11 +156,11 @@ export function ShelfClient({
       markBusy(bookId, true);
       try {
         const result = await setFavorite(bookId, false);
-        if (result?.error) {
+        if (result.error) {
           setError(result.error);
           return;
         }
-        const next = result?.data?.favoriteState;
+        const next = result.data?.favoriteState;
         if (next?.bookId !== bookId) {
           setError("收藏状态未更新，请稍后再试。");
           return;

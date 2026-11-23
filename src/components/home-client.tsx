@@ -405,11 +405,11 @@ const CasebookCard = memo(function CasebookCard({
     setFavError('')
     try {
       const result = await setFavorite(book.id, !isFavorite)
-      if (result?.error) {
+      if (result.error) {
         setFavError(result.error)
         return
       }
-      const next = result?.data?.favoriteState
+      const next = result.data?.favoriteState
       if (next?.bookId === book.id) {
         onFavoriteChange(book.id, next.active)
       } else {

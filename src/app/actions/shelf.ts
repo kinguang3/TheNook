@@ -4,9 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/server";
 import { deriveShelfStatus, isShelfStatus } from "@/lib/types";
 import type { ShelfData, ShelfStatus } from "@/lib/types";
 
-export type ShelfResult =
-  | { data?: ShelfData; error?: string }
-  | undefined;
+export type ShelfResult = { data?: ShelfData; error?: string };
 
 type ShelfRow = {
   book_id: string;

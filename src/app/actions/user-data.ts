@@ -4,9 +4,7 @@ import { updateTag } from "next/cache";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { type RatingStatView, type UserDataPatch } from "@/lib/types";
 
-export type UserDataResult =
-  | { data?: UserDataPatch; error?: string }
-  | undefined;
+export type UserDataResult = { data?: UserDataPatch; error?: string };
 
 // 客户端已知目标状态：直接写目标状态，省掉“先查是否存在”的那次数据库往返。
 // 两个分支都是幂等的——重复收藏 / 重复取消都不会报错。
