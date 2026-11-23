@@ -38,7 +38,11 @@ export default async function BookReviewsPage(
 ) {
   const { bookId } = await props.params;
 
-  // 会话与缓存书单互不依赖：先并行取回，再校验书籍是否存在
+  // 书评与聚合分不依赖会话/目录，先把这两个缓存查询发出；
+  // 同时并行取会话与书单，避免校验书籍前白等一轮
+  const reviewsPromise = getReviewsByBook(bookId);
+  const statPromise = getRatingStatForBook(bookId);
+
   const [{ supabase, user }, books] = await Promise.all([
     getCurrentUser(),
     getBooks(),
@@ -50,8 +54,8 @@ export default async function BookReviewsPage(
 
   // 书评、当前书的评分聚合与个人评分并行查
   const [reviews, stat, initialUserRating] = await Promise.all([
-    getReviewsByBook(bookId),
-    getRatingStatForBook(bookId),
+    reviewsPromise,
+    statPromise,
     user ? getRatingForBook(supabase, user.id, bookId) : Promise.resolve(null),
   ]);
 

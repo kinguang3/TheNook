@@ -12,17 +12,19 @@ export const metadata: Metadata = {
 
 export default async function ShelfPage() {
   const emptyShelf: ShelfData = {};
-  // 书单走缓存，书架与收藏按用户实时查；书架页不渲染评分/笔记，不必拉那两张表
-  const [{ supabase, user }, books] = await Promise.all([
-    getCurrentUser(),
-    getBooks(),
-  ]);
+  // 书单走缓存，书架与收藏按用户实时查；书架页不渲染评分/笔记，不必拉那两张表。
+  // 先把书单请求发出，拿到会话后立刻并行查书架/收藏，避免两者互相等待。
+  const sessionPromise = getCurrentUser();
+  const booksPromise = getBooks();
+
+  const { supabase, user } = await sessionPromise;
   const [shelfData, favorites] = user
     ? await Promise.all([
         getShelfData(supabase, user.id),
         getFavorites(supabase, user.id),
       ])
     : [emptyShelf, [] as string[]];
+  const books = await booksPromise;
 
   // 书架只展示已收藏的书：只序列化这部分，避免把整份目录发给客户端
   const favoriteSet = new Set(favorites);
