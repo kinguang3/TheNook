@@ -30,6 +30,14 @@ const NEXT_STATUS: Record<ShelfStatus, ShelfStatus> = {
   finished: "unread",
 };
 
+// 无进度记录时复用同一个对象，避免每次重算 rows 都生成新 entry，
+// 让未变化的 ShelfRow 能继续命中 memo
+const EMPTY_SHELF_ENTRY: ShelfEntry = {
+  progress: 0,
+  status: "unread",
+  lastReadAt: null,
+};
+
 export function ShelfClient({
   books,
   initialShelf,
@@ -125,8 +133,7 @@ export function ShelfClient({
 
       setShelf((prev) => {
         const entry = prev[book.id];
-        const base =
-          entry ?? { progress: 0, status: "unread" as const, lastReadAt: null };
+        const base = entry ?? EMPTY_SHELF_ENTRY;
         const progress =
           next === "finished" ? 100 : next === "unread" ? 0 : base.progress;
         return {
@@ -187,17 +194,12 @@ export function ShelfClient({
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const entryOfInner = (book: Book) =>
-      shelf[book.id] ?? {
-        progress: 0,
-        status: "unread" as const,
-        lastReadAt: null,
-      };
+    const entryOf = (book: Book) => shelf[book.id] ?? EMPTY_SHELF_ENTRY;
     return books
       .filter((book) => favoriteSet.has(book.id))
-      .map((book) => ({ book, entry: entryOfInner(book) }))
-      .filter(({ book }) => {
-        if (filter !== "all" && entryOfInner(book).status !== filter) {
+      .map((book) => ({ book, entry: entryOf(book) }))
+      .filter(({ book, entry }) => {
+        if (filter !== "all" && entry.status !== filter) {
           return false;
         }
         if (!q) return true;
