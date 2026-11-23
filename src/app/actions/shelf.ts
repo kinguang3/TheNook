@@ -1,18 +1,12 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/supabase/server";
-import { isShelfStatus } from "@/lib/types";
+import { deriveShelfStatus, isShelfStatus } from "@/lib/types";
 import type { ShelfData, ShelfStatus } from "@/lib/types";
 
 export type ShelfResult =
   | { data?: ShelfData; error?: string }
   | undefined;
-
-function deriveStatus(progress: number): ShelfStatus {
-  if (progress >= 100) return "finished";
-  if (progress > 0) return "reading";
-  return "unread";
-}
 
 type ShelfRow = {
   book_id: string;
@@ -56,7 +50,7 @@ export async function setProgress(
         user_id: user.id,
         book_id: bookId,
         progress,
-        status: deriveStatus(progress),
+        status: deriveShelfStatus(progress),
         last_read_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },

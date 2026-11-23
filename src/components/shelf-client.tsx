@@ -6,6 +6,7 @@ import Link from "next/link";
 import { setProgress, setStatus } from "@/app/actions/shelf";
 import { setFavorite } from "@/app/actions/user-data";
 import { formatDate } from "@/lib/format";
+import { deriveShelfStatus } from "@/lib/types";
 import type { Book, ShelfData, ShelfEntry, ShelfStatus } from "@/lib/types";
 
 type ShelfClientProps = {
@@ -81,8 +82,7 @@ export function ShelfClient({
     (book: Book, value: number) => {
       if (!isAuthed) return;
       const progress = Math.min(Math.max(value, 0), 100);
-      const status: ShelfStatus =
-        progress >= 100 ? "finished" : progress > 0 ? "reading" : "unread";
+      const status = deriveShelfStatus(progress);
 
       setShelf((prev) => ({
         ...prev,

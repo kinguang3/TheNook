@@ -42,6 +42,12 @@ export function isShelfStatus(value: unknown): value is ShelfStatus {
   return value === "unread" || value === "reading" || value === "finished";
 }
 
+export function deriveShelfStatus(progress: number): ShelfStatus {
+  if (progress >= 100) return "finished";
+  if (progress > 0) return "reading";
+  return "unread";
+}
+
 export type ShelfEntry = {
   progress: number;
   status: ShelfStatus;
