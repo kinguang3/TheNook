@@ -219,18 +219,16 @@ export async function getFavorites(
 export async function getNotes(
   supabase: SupabaseClient,
   userId: string,
-  bookIds?: string[],
+  bookIds: string[],
 ): Promise<Record<string, string>> {
-  // 专题页只需要当前书单的笔记；传入空列表时直接跳过查询
-  if (bookIds && bookIds.length === 0) return {};
+  // 专题页只需要当前书单的笔记；空书单直接跳过查询
+  if (bookIds.length === 0) return {};
 
-  const base = supabase
+  const { data } = await supabase
     .from("notes")
     .select("book_id, content")
-    .eq("user_id", userId);
-  const { data } = bookIds
-    ? await base.in("book_id", bookIds)
-    : await base;
+    .eq("user_id", userId)
+    .in("book_id", bookIds);
 
   return Object.fromEntries(
     (data ?? []).map((row) => [row.book_id, row.content as string]),
