@@ -35,7 +35,10 @@ const REVIEWS_CACHE = {
   tags: ["reviews"],
 };
 
-function publicClient() {
+let publicSupabase: SupabaseClient | null = null;
+
+function publicClient(): SupabaseClient {
+  if (publicSupabase) return publicSupabase;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
@@ -45,13 +48,14 @@ function publicClient() {
   }
   // 公开数据只带 anon key，不需要会话持久化/自动刷新：
   // 关掉后避免在服务端创建无用的 auth 定时器与存储监听
-  return createClient(url, key, {
+  publicSupabase = createClient(url, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false,
     },
   });
+  return publicSupabase;
 }
 
 type BookRow = {
